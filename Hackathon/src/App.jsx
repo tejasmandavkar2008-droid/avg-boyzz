@@ -1,15 +1,31 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import LandingPage   from './LandingPage'
+import LoginPage     from './LoginPage'
+import SignupPage    from './SignupPage'
+import DashboardPage from './DashboardPage'
 
 function App() {
-  const [message, setMessage] = useState('')
+  const [page, setPage]   = useState('landing') // 'landing'|'login'|'signup'|'dashboard'
+  const [user, setUser]   = useState(null)       // { name, email }
 
-  useEffect(() => {
-    fetch('/api/hello')
-      .then(res => res.text())
-      .then(data => setMessage(data))
-  }, [])
+  const handleLoginSuccess = (userData) => {
+    setUser(userData)
+    setPage('dashboard')
+  }
 
-  return <h1>{message}</h1>
+  const handleLogout = () => {
+    setUser(null)
+    setPage('landing')
+  }
+
+  return (
+    <>
+      {page === 'landing'   && <LandingPage onGetStarted={() => setPage('login')} />}
+      {page === 'login'     && <LoginPage onBack={() => setPage('landing')} onGoSignup={() => setPage('signup')} onLoginSuccess={handleLoginSuccess} />}
+      {page === 'signup'    && <SignupPage onBack={() => setPage('landing')} onGoLogin={() => setPage('login')} />}
+      {page === 'dashboard' && <DashboardPage user={user} onLogout={handleLogout} />}
+    </>
+  )
 }
 
 export default App

@@ -1,0 +1,907 @@
+/* ═══════════════════════════════════════════════════════════════
+   MARKETS PAGE: LIVE REAL-TIME STOCK MARKET DASHBOARD STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+.mkt-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  animation: mktFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mktFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── TOP LIVE BAR ── */
+.mkt-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.mkt-status-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.mkt-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #34d399;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mkt-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 10px #34d399;
+  animation: pulseGreen 1.5s infinite;
+}
+
+@keyframes pulseGreen {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.75); }
+}
+
+.mkt-time {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mkt-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mkt-auto-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.7);
+  user-select: none;
+}
+
+.mkt-auto-toggle input {
+  display: none;
+}
+
+.mkt-toggle-slider {
+  width: 32px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.mkt-toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s;
+}
+
+.mkt-auto-toggle input:checked + .mkt-toggle-slider {
+  background: #1a6bff;
+}
+
+.mkt-auto-toggle input:checked + .mkt-toggle-slider::before {
+  transform: translateX(14px);
+}
+
+.mkt-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mkt-refresh-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.mkt-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── INDICES GRID ── */
+.mkt-indices-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.mkt-index-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.mkt-index-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.mkt-card-up {
+  border-bottom: 2px solid #34d399;
+}
+
+.mkt-card-down {
+  border-bottom: 2px solid #f87171;
+}
+
+.mkt-idx-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mkt-idx-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mkt-idx-ex {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mkt-idx-val {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.mkt-idx-chg {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mkt-idx-chg.up { color: #34d399; }
+.mkt-idx-chg.down { color: #f87171; }
+
+/* ── MOVERS ROW ── */
+.mkt-movers-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mkt-mover-card {
+  padding: 16px 20px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mover-gainer {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.08), rgba(6, 78, 59, 0.15));
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.mover-gainer:hover {
+  border-color: rgba(52, 211, 153, 0.5);
+  box-shadow: 0 4px 20px rgba(52, 211, 153, 0.15);
+  transform: translateY(-2px);
+}
+
+.mover-loser {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(127, 29, 29, 0.15));
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.mover-loser:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+  transform: translateY(-2px);
+}
+
+.mkt-mover-tag {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mkt-mover-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mkt-mover-symbol {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.mkt-mover-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.mkt-mover-nums {
+  text-align: right;
+}
+
+.mkt-mover-price {
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.gainer-pct { color: #34d399; font-weight: 700; font-size: 12.5px; }
+.loser-pct { color: #f87171; font-weight: 700; font-size: 12.5px; }
+
+/* ── TOOLBAR ── */
+.mkt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mkt-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+}
+
+.mkt-search-icon {
+  position: absolute;
+  left: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.mkt-search-input {
+  width: 100%;
+  padding: 10px 38px 10px 42px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.mkt-search-input:focus {
+  border-color: #1a6bff;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(26, 107, 255, 0.2);
+}
+
+.mkt-search-clear {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.mkt-sector-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mkt-sector-btn {
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mkt-sector-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.mkt-sector-btn.active {
+  background: #1a6bff;
+  border-color: #1a6bff;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(26, 107, 255, 0.35);
+}
+
+/* ── STOCKS GRID ── */
+.mkt-stocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.mkt-stock-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.mkt-stock-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.card-up::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #34d399, transparent);
+}
+
+.card-down::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #f87171, transparent);
+}
+
+.mkt-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.mkt-card-sym-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.mkt-card-symbol {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.mkt-card-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  background: rgba(26, 107, 255, 0.15);
+  color: #60a5fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(26, 107, 255, 0.3);
+}
+
+.mkt-card-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.mkt-star-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0 4px;
+}
+
+.mkt-star-btn:hover {
+  color: #fbbf24;
+  transform: scale(1.15);
+}
+
+.mkt-star-btn.active {
+  color: #fbbf24;
+}
+
+/* Price & Change */
+.mkt-card-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.mkt-card-price {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.mkt-card-chg-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.chg-up {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.chg-down {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Day Range Bar */
+.mkt-range-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mkt-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.mkt-range-title {
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+}
+
+.mkt-range-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  position: relative;
+}
+
+.mkt-range-pin {
+  position: absolute;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #060c18;
+  transform: translateX(-50%);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Card Footer */
+.mkt-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mkt-vol-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mkt-vol-lbl {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+.mkt-vol-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mkt-spark-wrap {
+  display: flex;
+  align-items: center;
+}
+
+/* Loading & Empty */
+.mkt-loading-state,
+.mkt-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+.mkt-spinner-large {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #1a6bff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── MODAL DIALOG ── */
+.mkt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: mktFadeIn 0.2s ease;
+}
+
+.mkt-modal-card {
+  background: #0b1528;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  max-width: 600px;
+  width: 100%;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.mkt-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.mkt-modal-sym-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mkt-modal-sym {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.mkt-modal-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nse-badge {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.mkt-modal-name {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+.mkt-modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 26px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.mkt-modal-close:hover { color: #ffffff; }
+
+.mkt-modal-price-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.mkt-modal-price-big {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.mkt-modal-chg-big {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.mkt-modal-chg-big.up { color: #34d399; }
+.mkt-modal-chg-big.down { color: #f87171; }
+
+.mkt-modal-trade-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mkt-buy-btn {
+  padding: 10px 20px;
+  background: #059669;
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.mkt-buy-btn:hover {
+  background: #10b981;
+  transform: translateY(-1px);
+}
+
+.mkt-sell-btn {
+  padding: 10px 18px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 10px;
+  color: #f87171;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mkt-sell-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+/* Modal Stats Grid */
+.mkt-modal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.mkt-stat-box {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mkt-stat-box-lbl {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.mkt-stat-box-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.mkt-chart-preview-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mkt-chart-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mkt-chart-svg-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.mkt-chart-svg-wrap svg {
+  width: 100%;
+  height: 60px;
+}
+
+/* Trade execution dialog */
+.mkt-trade-modal {
+  background: #0d1a33;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  max-width: 440px;
+  width: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mkt-trade-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mkt-trade-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mkt-trade-row strong {
+  color: #ffffff;
+}
+
+.mkt-order-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(26, 107, 255, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(26, 107, 255, 0.3);
+}
+
+.mkt-trade-success-alert {
+  padding: 12px;
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 10px;
+  color: #34d399;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mkt-confirm-btn {
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.btn-buy {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.btn-sell {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1200px) {
+  .mkt-indices-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .mkt-indices-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mkt-movers-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mkt-search-wrapper {
+    max-width: 100%;
+  }
+
+  .mkt-stocks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-modal-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
