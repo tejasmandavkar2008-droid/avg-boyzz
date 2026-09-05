@@ -48,23 +48,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
   const [statusMsg, setStatusMsg] = useState(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // Live market stocks from backend feed
-  const [liveStocks, setLiveStocks] = useState([])
-  const [showDeploymentPlan, setShowDeploymentPlan] = useState(false)
-  const [executionState, setExecutionState] = useState(null) // null | 'executing' | 'completed'
-
-  // Fetch live market data
-  useEffect(() => {
-    fetch('/api/market/stocks')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setLiveStocks(data)
-        }
-      })
-      .catch(err => console.warn('Could not load live stocks for portfolio blueprint:', err))
-  }, [])
-
   // Sync if portfolioData updates from parent
   useEffect(() => {
     if (portfolioData) {
@@ -126,142 +109,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
     { label: 'Gold & Hedge Assets',   pct: goldPct, color: '#fbbf24', amount: (capitalNum * goldPct / 100) },
   ]
 
-  // ── GENERATE REAL LIVE MARKET INVESTMENT DEPLOYMENT BLUEPRINT ──
-  const generateInvestmentPlan = () => {
-    const deployableCapital = capitalNum * ((100 - liquidPct) / 100)
-    const liquidCashAmount = capitalNum * (liquidPct / 100)
-
-    // Fallback stocks if liveStocks hasn't arrived yet
-    const stocksPool = liveStocks.length > 0 ? liveStocks : [
-      { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', sector: 'Energy', price: 1322.00, change: 45.0, changePct: 3.52 },
-      { symbol: 'TCS', name: 'Tata Consultancy Services', sector: 'IT', price: 2304.00, change: -95.3, changePct: -3.97 },
-      { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', sector: 'Banking', price: 712.10, change: 3.1, changePct: 0.44 },
-      { symbol: 'INFY', name: 'Infosys Ltd.', sector: 'IT', price: 1130.00, change: -3.8, changePct: -0.34 },
-      { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd.', sector: 'Automobile', price: 1085.60, change: 15.2, changePct: 1.15 },
-      { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd.', sector: 'Banking', price: 1423.20, change: -30.8, changePct: -2.12 },
-      { symbol: 'BHARTIARTL', name: 'Bharti Airtel Ltd.', sector: 'Telecom', price: 1840.00, change: 28.1, changePct: 1.55 },
-      { symbol: 'ITC', name: 'ITC Ltd.', sector: 'FMCG', price: 264.10, change: 8.6, changePct: 3.37 },
-      { symbol: 'TATASTEEL', name: 'Tata Steel Ltd.', sector: 'Metals', price: 188.79, change: 4.44, changePct: 2.41 },
-    ]
-
-    const getStock = (sym) => stocksPool.find(s => s.symbol === sym) || { price: 1000, change: 0, changePct: 0 }
-
-    // Proportions calibrated to user risk tolerance
-    // Higher risk tolerance -> higher allocation to high-beta / growth stocks
-    // Lower risk tolerance -> higher allocation to defensive large caps & gold
-    let equityWeight = 0.60
-    let goldWeight = 0.15
-    let debtBondWeight = 0.25
-
-    if (riskNum <= 15) {
-      equityWeight = 0.40
-      goldWeight = 0.25
-      debtBondWeight = 0.35
-    } else if (riskNum >= 25) {
-      equityWeight = 0.75
-      goldWeight = 0.10
-      debtBondWeight = 0.15
-    }
-
-    const items = []
-
-    // 1. Mandatory Liquidity Guardrail
-    items.push({
-      asset: 'HDFC / Axis Instant Liquid Cash & Overnight T-Bills',
-      symbol: 'LIQUID_CASH',
-      type: 'Liquid Cash Buffer',
-      sector: 'Instant Liquidity Reserve',
-      livePrice: 100.00,
-      priceUnit: '₹100 / NAV Unit',
-      change: 0.05,
-      changePct: 0.05,
-      weightPct: liquidPct,
-      allocatedAmount: liquidCashAmount,
-      shares: Math.floor(liquidCashAmount / 100),
-      riskRating: '0% Volatility (Instant T+0)',
-      riskTagColor: '#22d3ee',
-      rationale: `Enforces your exact minimum ${liquidPct}% liquidity limit for emergency withdrawals without market lock-in.`
-    })
-
-    // 2. Gold Hedging
-    const goldAmount = deployableCapital * goldWeight
-    const goldLivePrice = 7245.00 // Gold ETF unit NAV
-    items.push({
-      asset: 'Nippon India Sovereign Gold ETF',
-      symbol: 'GOLDBEES',
-      type: 'Commodity Hedge',
-      sector: 'Precious Metals',
-      livePrice: goldLivePrice,
-      priceUnit: 'Live NAV',
-      change: 31.0,
-      changePct: 0.43,
-      weightPct: Math.round(((100 - liquidPct) * goldWeight)),
-      allocatedAmount: goldAmount,
-      shares: Math.floor(goldAmount / goldLivePrice),
-      riskRating: 'Low Correlation / Safe Haven',
-      riskTagColor: '#fbbf24',
-      rationale: 'Hedges against inflation and equity market corrections.'
-    })
-
-    // 3. High-Quality Sovereign / Corporate Debt Bond Fund
-    const debtAmount = deployableCapital * debtBondWeight
-    const bondNAV = 1000.00
-    items.push({
-      asset: 'Bharat Bond G-Sec 10Y Target Maturity ETF',
-      symbol: 'BHARATBOND',
-      type: 'Fixed Income',
-      sector: 'Sovereign Debt',
-      livePrice: bondNAV,
-      priceUnit: 'Live NAV',
-      change: 0.20,
-      changePct: 0.02,
-      weightPct: Math.round(((100 - liquidPct) * debtBondWeight)),
-      allocatedAmount: debtAmount,
-      shares: Math.floor(debtAmount / bondNAV),
-      riskRating: 'AAA Sovereign (Low Risk)',
-      riskTagColor: '#a78bfa',
-      rationale: 'Generates stable fixed yields to safeguard capital preservation.'
-    })
-
-    // 4. Live Indian Stocks Allocation (Nifty 50 Bluechips & Growth)
-    const equityCapital = deployableCapital * equityWeight
-    const stockAllocations = [
-      { sym: 'RELIANCE', weight: 0.22, risk: 'Moderate Growth (Beta 1.05)' },
-      { sym: 'TCS',      weight: 0.18, risk: 'Defensive Value (Beta 0.78)' },
-      { sym: 'HDFCBANK', weight: 0.18, risk: 'Financial Core (Beta 1.10)' },
-      { sym: 'INFY',     weight: 0.14, risk: 'IT & Digital (Beta 0.95)' },
-      { sym: 'TATAMOTORS', weight: 0.14, risk: 'Auto / Cyclical (Beta 1.25)' },
-      { sym: 'ITC',      weight: 0.14, risk: 'High Dividend / FMCG (Beta 0.65)' },
-    ]
-
-    stockAllocations.forEach(st => {
-      const stock = getStock(st.sym)
-      const allocated = equityCapital * st.weight
-      const qty = Math.floor(allocated / (stock.price || 1000))
-
-      items.push({
-        asset: stock.name,
-        symbol: stock.symbol,
-        type: 'Equity (NSE)',
-        sector: stock.sector,
-        livePrice: stock.price,
-        priceUnit: 'NSE Live Traded',
-        change: stock.change,
-        changePct: stock.changePct,
-        weightPct: Math.round(((100 - liquidPct) * equityWeight * st.weight)),
-        allocatedAmount: allocated,
-        shares: qty,
-        riskRating: st.risk,
-        riskTagColor: stock.change >= 0 ? '#34d399' : '#f87171',
-        rationale: `Selected for balanced growth matching your ${riskNum}% risk threshold and ${returnNum}% target return.`
-      })
-    })
-
-    return items
-  }
-
-  const investmentPlanItems = generateInvestmentPlan()
-
   // Handle Save
   const handleSave = async (e) => {
     e.preventDefault()
@@ -292,7 +139,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       if (res.ok) {
         setIsSuccess(true)
         setStatusMsg(data.message || 'Portfolio configuration saved successfully!')
-        setShowDeploymentPlan(true) // Automatically display the Live Market Investment Blueprint!
         if (onSaveSuccess) {
           onSaveSuccess({
             capital: capitalNum,
@@ -309,7 +155,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       console.error(err)
       setIsSuccess(true)
       setStatusMsg('Portfolio saved locally in current session!')
-      setShowDeploymentPlan(true)
       if (onSaveSuccess) {
         onSaveSuccess({
           capital: capitalNum,
@@ -329,7 +174,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
     setLiquidityLimit(72.0)
     setExpectedReturn(11.8)
     setStatusMsg(null)
-    setShowDeploymentPlan(false)
   }
 
   // Mini donut chart SVG
@@ -786,157 +630,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
 
         </div>
       </div>
-
-      {/* ══════════════════════════════════════════════════════════════════
-          LIVE MARKET CAPITAL DEPLOYMENT BLUEPRINT (REVEALED ON SAVE)
-          ══════════════════════════════════════════════════════════════════ */}
-      {(showDeploymentPlan || true) && (
-        <div className="port-deployment-section">
-          <div className="port-deploy-header">
-            <div className="port-deploy-title-wrap">
-              <div className="port-deploy-badge">
-                <span className="port-pulse-live"></span>
-                LIVE MARKET CAPITAL DEPLOYMENT BLUEPRINT
-              </div>
-              <h2 className="port-deploy-title">
-                Recommended Investment Plan for {formatINR(capitalNum)}
-              </h2>
-              <p className="port-deploy-desc">
-                Derived by analyzing live <strong>NSE / BSE stock prices</strong>, applying your <strong>{riskNum}% Risk Limit</strong>, and strictly locking in your <strong>{liquidityNum}% Liquidity Threshold ({formatINR(liquidReserve)})</strong>.
-              </p>
-            </div>
-
-            <div className="port-deploy-summary-box">
-              <div className="port-deploy-stat">
-                <span className="stat-sub">Deployable in Equities/Bonds</span>
-                <span className="stat-val">{formatINR(capitalNum - liquidReserve)}</span>
-              </div>
-              <div className="port-deploy-stat">
-                <span className="stat-sub">Liquid Cash Reserve</span>
-                <span className="stat-val text-cyan">{formatINR(liquidReserve)}</span>
-              </div>
-              <div className="port-deploy-stat">
-                <span className="stat-sub">Target Portfolio Return</span>
-                <span className="stat-val text-green">{returnNum.toFixed(1)}% / yr</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Investment Plan Table */}
-          <div className="port-plan-table-card">
-            <div className="port-table-header-row">
-              <h3>Real-Time Live Asset Breakdown & Share Orders</h3>
-              <span className="port-table-sub">Live traded prices from NSE • Fractional rounding applied</span>
-            </div>
-
-            <div className="port-table-responsive">
-              <table className="port-table">
-                <thead>
-                  <tr>
-                    <th>Asset / Company</th>
-                    <th>Asset Class</th>
-                    <th>Live Market Price</th>
-                    <th>Today's Chg</th>
-                    <th>Alloc. %</th>
-                    <th>Capital Allocated</th>
-                    <th>Recommended Qty</th>
-                    <th>Risk Rating</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {investmentPlanItems.map((item, idx) => (
-                    <tr key={idx} className={item.symbol === 'LIQUID_CASH' ? 'tr-liquid' : ''}>
-                      <td>
-                        <div className="tbl-asset-col">
-                          <span className="tbl-sym">{item.symbol}</span>
-                          <span className="tbl-name">{item.asset}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="tbl-type-badge">{item.type}</span>
-                      </td>
-                      <td>
-                        <div className="tbl-price">
-                          <strong>₹{item.livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                          <span className="tbl-price-unit">{item.priceUnit}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`tbl-chg ${item.change >= 0 ? 'up' : 'down'}`}>
-                          {item.change >= 0 ? '▲ +' : '▼ '}
-                          {Math.abs(item.change).toFixed(2)} ({item.change >= 0 ? '+' : ''}{item.changePct.toFixed(2)}%)
-                        </span>
-                      </td>
-                      <td>
-                        <strong className="tbl-pct">{item.weightPct}%</strong>
-                      </td>
-                      <td>
-                        <span className="tbl-alloc-amt">{formatINR(item.allocatedAmount)}</span>
-                      </td>
-                      <td>
-                        <div className="tbl-qty-badge">
-                          <strong>{item.shares.toLocaleString('en-IN')}</strong> {item.symbol === 'LIQUID_CASH' ? 'Units' : 'Shares'}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="tbl-risk-badge" style={{ color: item.riskTagColor, borderColor: `${item.riskTagColor}55`, background: `${item.riskTagColor}15` }}>
-                          {item.riskRating}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Execution / Action bar */}
-            <div className="port-plan-footer">
-              <div className="port-plan-summary-note">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#34d399" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span>
-                  <strong>Risk & Liquidity Guardrail Passed:</strong> 100% of capital ({formatINR(capitalNum)}) is fully accounted for. Guaranteed {liquidityNum}% ({formatINR(liquidReserve)}) liquidity buffer reserved.
-                </span>
-              </div>
-
-              <div className="port-deploy-action-btns">
-                <button 
-                  className="port-execute-deploy-btn"
-                  onClick={() => {
-                    setExecutionState('executing')
-                    setTimeout(() => setExecutionState('completed'), 1500)
-                  }}
-                  disabled={executionState === 'executing'}
-                >
-                  {executionState === 'executing' ? (
-                    <>
-                      <span className="port-spinner"></span>
-                      Routing Orders to NSE / BSE...
-                    </>
-                  ) : executionState === 'completed' ? (
-                    <>
-                      ✓ Deployed & Executed at Live Prices
-                    </>
-                  ) : (
-                    <>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Execute Capital Deployment at Live Prices
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {executionState === 'completed' && (
-              <div className="port-exec-success-box">
-                <div className="exec-title">✓ Portfolio Deployment Successfully Placed</div>
-                <div className="exec-desc">
-                  Simulated orders for all {investmentPlanItems.length} assets routed to exchange brokers. Order Ref ID: #ORD-{Math.floor(100000 + Math.random() * 900000)}. Your active dashboard metrics are synchronized.
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
