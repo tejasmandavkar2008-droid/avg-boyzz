@@ -10,7 +10,8 @@ body {
   font-family: 'Inter', sans-serif;
   background: #050a14;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* ── Back Button ── */

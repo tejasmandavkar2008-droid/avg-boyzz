@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import PortfolioPanel, { formatINR, formatINRShorthand } from './PortfolioPanel'
 import MarketsPage from './MarketsPage'
 import AnalyticsTab from './AnalyticsTab'
+import RiskEngineTab from './RiskEngineTab'
+import AiCopilot from './AiCopilot'
+import RiskRemindersDrawer from './RiskRemindersDrawer'
 import './DashboardPage.css'
 
 const NAV_ITEMS = [
@@ -12,6 +15,10 @@ const NAV_ITEMS = [
   {
     id: 'portfolio', label: 'Portfolio',
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M7 16l4-6 4 4 4-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+  },
+  {
+    id: 'risk', label: 'Risk Engine',
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
   },
   {
     id: 'markets', label: 'Markets',
@@ -35,7 +42,6 @@ const TRANSACTIONS = [
   { name: 'TCS Ltd',             type: 'BUY',  amount: '+₹80,000',   date: '4 days ago', color: '#4ade80' },
 ]
 
-// Donut chart via SVG
 function DonutChart({ segments, totalText }) {
   const r = 54, cx = 64, cy = 64
   const circ = 2 * Math.PI * r
@@ -62,7 +68,6 @@ function DonutChart({ segments, totalText }) {
   )
 }
 
-// Mini sparkline via SVG
 function Sparkline({ points, color }) {
   const w = 120, h = 40
   const min = Math.min(...points), max = Math.max(...points)
@@ -85,8 +90,10 @@ function Sparkline({ points, color }) {
 }
 
 export default function DashboardPage({ user, onLogout }) {
-  const [activeNav, setActiveNav]     = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeNav, setActiveNav]         = useState('dashboard')
+  const [sidebarOpen, setSidebarOpen]     = useState(false)
+  const [remindersOpen, setRemindersOpen] = useState(false)
+  const [unreadAlerts, setUnreadAlerts]   = useState(0)
 
   // User-configurable portfolio state (loads from localStorage or defaults, then validates with backend)
   const [portfolioData, setPortfolioData] = useState(() => {
@@ -104,6 +111,20 @@ export default function DashboardPage({ user, onLogout }) {
       expectedReturn: 11.8
     }
   })
+
+  // Fetch reminder unread status on mount
+  useEffect(() => {
+    const userEmail = user?.email || 'guest'
+    fetch(`/api/risk/reminders?email=${encodeURIComponent(userEmail)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const unread = data.filter(r => !r.isRead).length
+          setUnreadAlerts(unread)
+        }
+      })
+      .catch(() => {})
+  }, [user?.email, remindersOpen])
 
   // Listen to portfolio_updated events across all components
   useEffect(() => {
@@ -178,7 +199,7 @@ export default function DashboardPage({ user, onLogout }) {
     {
       title: 'Portfolio Risk',
       value: `${risk.toFixed(1)}%`,
-      badge: risk <= 15 ? '🟢 Low' : risk <= 25 ? '🟡 Moderate' : '🔴 High',
+      badge: risk <= 15 ? 'Low' : risk <= 25 ? 'Moderate' : 'High',
       sub: risk <= 15 ? 'Well diversified' : 'Higher growth exposure',
       subColor: risk <= 15 ? '#4ade80' : '#fbbf24',
       icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -190,7 +211,7 @@ export default function DashboardPage({ user, onLogout }) {
     {
       title: 'Liquidity',
       value: `${liq.toFixed(1)}%`,
-      badge: liq >= 50 ? '🟢 High' : liq >= 25 ? '🟡 Moderate' : '🔴 Low',
+      badge: liq >= 50 ? 'High' : liq >= 25 ? 'Moderate' : 'Low',
       sub: `${formatINRShorthand(liquidAmount)} liquid assets`,
       subColor: liq >= 50 ? '#4ade80' : '#fbbf24',
       icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -243,7 +264,7 @@ export default function DashboardPage({ user, onLogout }) {
                 <span className="db-nav-badge">Setup</span>
               )}
               {item.id === 'markets' && (
-                <span className="db-nav-badge mkt-badge-live">● Live</span>
+                <span className="db-nav-badge mkt-badge-live">Live</span>
               )}
             </button>
           ))}
@@ -278,7 +299,7 @@ export default function DashboardPage({ user, onLogout }) {
               </svg>
             </button>
             <div>
-              <h1 className="db-greeting">Good afternoon, {(user?.name || 'Investor').split(' ')[0]} 👋</h1>
+              <h1 className="db-greeting">Good afternoon, {(user?.name || 'Investor').split(' ')[0]}</h1>
               <p className="db-date">{new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>
             </div>
           </div>
@@ -296,11 +317,16 @@ export default function DashboardPage({ user, onLogout }) {
               </button>
             )}
 
-            <button className="db-notif-btn">
+            {/* Notification Bell with Unread Reminder Indicator */}
+            <button 
+              className="db-notif-btn" 
+              onClick={() => setRemindersOpen(true)} 
+              title="Risk Limit & Market Step-Down Reminders"
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              <span className="db-notif-dot"></span>
+              {unreadAlerts > 0 && <span className="db-notif-dot"></span>}
             </button>
             <div className="db-avatar db-avatar-top">{(user?.name || 'U')[0].toUpperCase()}</div>
           </div>
@@ -334,16 +360,15 @@ export default function DashboardPage({ user, onLogout }) {
               {/* Portfolio shortcut banner */}
               <div className="db-banner-shortcut">
                 <div className="db-banner-left">
-                  <div className="db-banner-icon">💡</div>
                   <div>
                     <div className="db-banner-heading">Active Capital & Risk Configuration</div>
                     <div className="db-banner-sub">
-                      Capital: <strong>{formatINR(cap)}</strong> • Max Risk: <strong>{risk.toFixed(1)}%</strong> • Min Liquidity: <strong>{liq.toFixed(1)}%</strong>
+                      Capital: <strong>{formatINR(cap)}</strong> | Max Risk: <strong>{risk.toFixed(1)}%</strong> | Min Liquidity: <strong>{liq.toFixed(1)}%</strong>
                     </div>
                   </div>
                 </div>
                 <button className="db-banner-btn" onClick={() => setActiveNav('portfolio')}>
-                  Adjust Limits & Capital →
+                  Adjust Limits & Capital
                 </button>
               </div>
 
@@ -394,7 +419,7 @@ export default function DashboardPage({ user, onLogout }) {
                 <div className="db-card db-performance">
                   <div className="db-card-header">
                     <h2>Monthly Performance</h2>
-                    <span className="db-perf-up">▲ {(ret / 3).toFixed(1)}%</span>
+                    <span className="db-perf-up">+{(ret / 3).toFixed(1)}%</span>
                   </div>
                   <div className="db-perf-bars">
                     {['Apr','May','Jun','Jul','Aug','Sep'].map((m, i) => {
@@ -415,7 +440,7 @@ export default function DashboardPage({ user, onLogout }) {
                 <div className="db-card db-transactions">
                   <div className="db-card-header">
                     <h2>Recent Activity</h2>
-                    <button className="db-see-all">See all →</button>
+                    <button className="db-see-all">See all</button>
                   </div>
                   <div className="db-tx-list">
                     {TRANSACTIONS.map((tx, i) => (
@@ -439,8 +464,16 @@ export default function DashboardPage({ user, onLogout }) {
           )}
 
           {/* ══════════════════════════════════════════════════════
-              OTHER TABS (Markets, Analytics, Settings)
+              OTHER TABS (Risk Engine, Markets, Analytics, Settings)
               ══════════════════════════════════════════════════════ */}
+          {activeNav === 'risk' && (
+            <RiskEngineTab
+              user={user}
+              portfolioData={portfolioData}
+              onNavigatePortfolio={() => setActiveNav('portfolio')}
+            />
+          )}
+
           {activeNav === 'markets' && (
             <MarketsPage />
           )}
@@ -480,6 +513,26 @@ export default function DashboardPage({ user, onLogout }) {
 
         </div>
       </main>
+
+      {/* ── RISK REMINDERS SENTINEL DRAWER ── */}
+      <RiskRemindersDrawer
+        isOpen={remindersOpen}
+        onClose={() => setRemindersOpen(false)}
+        user={user}
+        portfolioData={portfolioData}
+        onNavigateRisk={() => setActiveNav('risk')}
+      />
+
+      {/* ── AI RISK & PORTFOLIO COPILOT ── */}
+      <AiCopilot
+        user={user}
+        portfolioData={portfolioData}
+        onExecuteAction={(action) => {
+          if (action.type === 'APPLY_CONSTRAINED_OPTIMIZER' || action.type === 'RUN_STRESS_TEST' || action.type === 'VIEW_FRONTIER' || action.type === 'VIEW_OVERVIEW' || action.type === 'VIEW_FRICTION') {
+            setActiveNav('risk')
+          }
+        }}
+      />
     </div>
   )
 }

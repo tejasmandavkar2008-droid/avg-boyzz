@@ -1,10 +1,18 @@
+import { useState } from 'react'
 import './LandingPage.css'
 
 function LandingPage({ onGetStarted }) {
+  const [activeTabPreview, setActiveTabPreview] = useState('optimization') // 'optimization' | 'risk' | 'friction' | 'stress'
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div className="landing-page">
 
-      {/* Animated background */}
+      {/* Animated background glows */}
       <div className="lp-blob lp-blob-1"></div>
       <div className="lp-blob lp-blob-2"></div>
       <div className="lp-blob lp-blob-3"></div>
@@ -24,117 +32,327 @@ function LandingPage({ onGetStarted }) {
         </div>
 
         <ul className="nav-links">
-          <li><a href="#">Features</a></li>
-          <li><a href="#">Markets</a></li>
-          <li><a href="#">Pricing</a></li>
-          <li><a href="#">About</a></li>
+          <li><a href="#overview" onClick={(e) => { e.preventDefault(); scrollToSection('overview') }}>Overview</a></li>
+          <li><a href="#pillars" onClick={(e) => { e.preventDefault(); scrollToSection('pillars') }}>Core Pillars</a></li>
+          <li><a href="#risk-engine" onClick={(e) => { e.preventDefault(); scrollToSection('risk-engine') }}>Risk Engine</a></li>
+          <li><a href="#workflow" onClick={(e) => { e.preventDefault(); scrollToSection('workflow') }}>How It Works</a></li>
+          <li><a href="#preview" onClick={(e) => { e.preventDefault(); scrollToSection('preview') }}>Demo Sandbox</a></li>
         </ul>
 
         <button className="nav-cta" onClick={onGetStarted} id="nav-get-started">
-          Get Started
+          Launch Terminal
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="hero-section">
+      {/* ── HERO SECTION ── */}
+      <section className="hero-section" id="overview">
         <div className="hero-badge">
           <span className="badge-dot"></span>
-          Trusted by 50,000+ investors worldwide
+          ⭐ QUANTITATIVE ASSET & CAPITAL MANAGEMENT / OPTIMIZATION CONTROLS
         </div>
 
         <h1 className="hero-title">
-          Manage Your Assets<br />
-          <span className="hero-gradient">Smarter & Faster</span>
+          Automated Capital Optimization &<br />
+          <span className="hero-gradient">Institutional Risk Safeguards</span>
         </h1>
 
         <p className="hero-desc">
-          A next-generation fintech platform to track, grow, and protect your<br />
-          portfolio with real-time insights and AI-powered analytics.
+          An end-to-end FinTech platform engineered to solve real-world balance sheet allocation, enforce mandatory liquidity & single-asset limits, and execute zero-friction rebalancing with <strong>Markowitz MPT, Parametric VaR, and Automated Breach Controls</strong>.
         </p>
 
         <div className="hero-actions">
           <button className="hero-btn-primary" onClick={onGetStarted} id="hero-get-started">
-            Get Started — It's Free
+            Launch Risk Terminal — It's Free
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <button className="hero-btn-secondary">
+          <button className="hero-btn-secondary" onClick={() => scrollToSection('preview')}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M10 8l6 4-6 4V8z" fill="currentColor"/>
             </svg>
-            Watch Demo
+            Explore Before vs After Demo
           </button>
         </div>
 
-        {/* ── STATS ── */}
+        {/* ── QUANTITATIVE KPI STATS ── */}
         <div className="stats-row">
           <div className="stat-card">
-            <span className="stat-value">$2.4B+</span>
-            <span className="stat-label">Assets Managed</span>
+            <span className="stat-value">₹10 Cr+</span>
+            <span className="stat-label">Tested Capital Capacity</span>
           </div>
           <div className="stat-divider"></div>
           <div className="stat-card">
-            <span className="stat-value">50K+</span>
-            <span className="stat-label">Active Users</span>
+            <span className="stat-value">95% & 99%</span>
+            <span className="stat-label">Parametric VaR Horizons</span>
           </div>
           <div className="stat-divider"></div>
           <div className="stat-card">
-            <span className="stat-value">99.9%</span>
-            <span className="stat-label">Uptime SLA</span>
+            <span className="stat-value">≥ 20%</span>
+            <span className="stat-label">Mandatory Liquidity Ratio</span>
           </div>
           <div className="stat-divider"></div>
           <div className="stat-card">
-            <span className="stat-value">18%</span>
-            <span className="stat-label">Avg Annual Return</span>
+            <span className="stat-value">0.035%</span>
+            <span className="stat-label">Minimized Turnover Drag</span>
           </div>
         </div>
       </section>
 
-      {/* ── FEATURES ── */}
-      <section className="features-section">
-        <div className="feature-card">
-          <div className="feature-icon" style={{ background: 'linear-gradient(135deg,#1a6bff22,#1a6bff11)', borderColor: '#1a6bff33' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M3 3v18h18" stroke="#4a9eff" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M7 16l4-6 4 4 4-8" stroke="#4a9eff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <h3>Real-Time Analytics</h3>
-          <p>Live market data with intelligent dashboards to track your investments 24/7.</p>
+      {/* ── 4 CORE PILLARS OF THE PROBLEM STATEMENT ── */}
+      <section className="lp-section" id="pillars">
+        <div className="lp-section-header">
+          <span className="lp-tag">COMPREHENSIVE SOLUTION</span>
+          <h2>Solving the Core Challenges of Institutional Asset Management</h2>
+          <p>
+            When market volatility spikes, traditional static allocations fail. Our platform continuously evaluates risk, prevents overconcentration, and mitigates execution friction.
+          </p>
         </div>
 
-        <div className="feature-card">
-          <div className="feature-icon" style={{ background: 'linear-gradient(135deg,#7b2fff22,#7b2fff11)', borderColor: '#7b2fff33' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z" stroke="#a78bfa" strokeWidth="1.5"/>
-              <path d="M12 6v6l4 2" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+        <div className="pillars-grid">
+          {/* Pillar 1 */}
+          <div className="pillar-card">
+            <div className="pillar-icon" style={{ background: 'linear-gradient(135deg, rgba(26,107,255,0.2), rgba(26,107,255,0.05))', color: '#60a5fa' }}>
+              🎯
+            </div>
+            <h3>1. Real-World Constrained Optimization</h3>
+            <p>
+              Stops algorithms from naïvely pouring 100% into high-beta assets. Enforces strict bounds: <strong>Stock ≤ 40%, Bonds ≤ 50%, Gold ≤ 25%, Cash ≥ 15%, VaR ≤ 6%</strong> while maximizing risk-adjusted Sharpe ratios.
+            </p>
+            <ul className="pillar-checklist">
+              <li>✓ Multi-Asset Simplex Optimizer (Stocks, Bonds, Gold, Cash)</li>
+              <li>✓ Markowitz Tangency & Minimum Variance (MVP) frontier</li>
+              <li>✓ Dynamic Sharpe ratio maximization (Sharpe Ratio ≥ 1.45)</li>
+            </ul>
           </div>
-          <h3>AI-Powered Insights</h3>
-          <p>Smart recommendations powered by ML models to maximize your portfolio returns.</p>
+
+          {/* Pillar 2 */}
+          <div className="pillar-card highlight-border">
+            <div className="pillar-icon" style={{ background: 'linear-gradient(135deg, rgba(52,211,153,0.2), rgba(52,211,153,0.05))', color: '#34d399' }}>
+              🛡️
+            </div>
+            <h3>2. 5-Point Quantitative Risk Engine (A-E)</h3>
+            <p>
+              Continuous mathematical evaluation across 5 critical risk dimensions: <strong>Portfolio Volatility, Value at Risk (VaR), Maximum Drawdown (MDD), Liquidity Adequacy, and Concentration Limits</strong>.
+            </p>
+            <ul className="pillar-checklist">
+              <li>✓ Gaussian Parametric VaR with natural language guarantees</li>
+              <li>✓ Peak-to-Trough Drawdown & active recovery trajectory</li>
+              <li>✓ Herfindahl-Hirschman Index (HHI) concentration limits</li>
+            </ul>
+          </div>
+
+          {/* Pillar 3 */}
+          <div className="pillar-card">
+            <div className="pillar-icon" style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,191,36,0.05))', color: '#fbbf24' }}>
+              💰
+            </div>
+            <h3>3. Zero-Penalty Rebalancing Friction Engine</h3>
+            <p>
+              Quantifies realistic execution friction against gross risk penalty reduction. Accurately calculates <strong>STT (0.10%), Exchange Fees, Stamp Duty, Brokerage/GST, and TWAP Market Slippage</strong>.
+            </p>
+            <ul className="pillar-checklist">
+              <li>✓ Full Indian statutory taxation & regulatory fee breakdown</li>
+              <li>✓ Net Value Created formula: Risk Reduction - Friction &gt; 0</li>
+              <li>✓ Staged trade execution roadmap to prevent price impact</li>
+            </ul>
+          </div>
+
+          {/* Pillar 4 */}
+          <div className="pillar-card">
+            <div className="pillar-icon" style={{ background: 'linear-gradient(135deg, rgba(248,113,113,0.2), rgba(248,113,113,0.05))', color: '#f87171' }}>
+              🌪️
+            </div>
+            <h3>4. Crisis Stress Testing & Auto-Cure</h3>
+            <p>
+              Stress-tests capital resilience against historical black-swan crises (2008 Global Crash, 2020 Covid Shock, RBI +250bps Rate Spikes) with automated breach detection and 1-click Auto-Cure.
+            </p>
+            <ul className="pillar-checklist">
+              <li>✓ Instant detection of single-asset & liquidity breaches</li>
+              <li>✓ Automated rebalancing recommendations to cure deficits</li>
+              <li>✓ Macro shock capital preservation index calculation</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ── INTERACTIVE TERMINAL PREVIEW & BENCHMARK ── */}
+      <section className="lp-section" id="preview">
+        <div className="lp-section-header">
+          <span className="lp-tag tag-purple">LIVE OPTIMIZER DEMONSTRATION</span>
+          <h2>Real-World Constraints in Action: Before vs After</h2>
+          <p>
+            See how the platform detects unconstrained risk and solves for the optimal institutional portfolio.
+          </p>
         </div>
 
-        <div className="feature-card">
-          <div className="feature-icon" style={{ background: 'linear-gradient(135deg,#00c6ff22,#00c6ff11)', borderColor: '#00c6ff33' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="11" width="18" height="11" rx="2" stroke="#22d3ee" strokeWidth="1.5"/>
-              <path d="M7 11V7a5 5 0 0110 0v4" stroke="#22d3ee" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+        <div className="demo-comparison-wrapper">
+          {/* Card 1: Unconstrained High Risk */}
+          <div className="demo-comp-card card-before">
+            <div className="d-card-head">
+              <span className="d-card-tag tag-danger">⚠️ CURRENT STATE (UNCONSTRAINED)</span>
+              <span className="d-card-status">3 Violations Detected</span>
+            </div>
+            <h4>Stocks 60% • Bonds 20% • Gold 10% • Cash 10%</h4>
+            <p className="d-card-desc">High equity exposure breaches single-asset limits and creates severe liquidity deficit.</p>
+            
+            <div className="d-metrics-row">
+              <div className="d-metric-box">
+                <span className="dm-lbl">1-Day VaR (95%)</span>
+                <span className="dm-val val-danger">8.2% (₹8,20,000)</span>
+              </div>
+              <div className="d-metric-box">
+                <span className="dm-lbl">Liquidity Ratio</span>
+                <span className="dm-val val-danger">10% (⚠️ Deficit)</span>
+              </div>
+              <div className="d-metric-box">
+                <span className="dm-lbl">Concentration</span>
+                <span className="dm-val val-danger">HIGH (&gt; 40%)</span>
+              </div>
+            </div>
+
+            <div className="d-bars-stack">
+              <div className="d-bar-row">
+                <span>Stocks (60%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-red" style={{ width: '60%' }}></div></div>
+              </div>
+              <div className="d-bar-row">
+                <span>Bonds (20%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-blue" style={{ width: '20%' }}></div></div>
+              </div>
+              <div className="d-bar-row">
+                <span>Gold (10%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-gold" style={{ width: '10%' }}></div></div>
+              </div>
+              <div className="d-bar-row">
+                <span>Cash (10%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-red" style={{ width: '10%' }}></div></div>
+              </div>
+            </div>
           </div>
-          <h3>Bank-Grade Security</h3>
-          <p>256-bit encryption, 2FA, and biometric authentication to keep your funds safe.</p>
+
+          <div className="demo-arrow-divider">
+            <div className="arrow-circle">➔</div>
+            <span>Optimized by Constraint Solver</span>
+          </div>
+
+          {/* Card 2: System Recommended */}
+          <div className="demo-comp-card card-after">
+            <div className="d-card-head">
+              <span className="d-card-tag tag-success">🎯 SYSTEM RECOMMENDED (OPTIMAL)</span>
+              <span className="d-card-status status-green">✅ 100% Compliant</span>
+            </div>
+            <h4>Stocks 35% • Bonds 35% • Gold 15% • Cash 15%</h4>
+            <p className="d-card-desc">All regulatory constraints satisfied: VaR drops to 5.1%, liquidity restored to 15%, concentration cured.</p>
+            
+            <div className="d-metrics-row">
+              <div className="d-metric-box">
+                <span className="dm-lbl">Optimized VaR (95%)</span>
+                <span className="dm-val val-success">5.1% (₹5,10,000)</span>
+              </div>
+              <div className="d-metric-box">
+                <span className="dm-lbl">Liquidity Ratio</span>
+                <span className="dm-val val-success">15% (✅ Compliant)</span>
+              </div>
+              <div className="d-metric-box">
+                <span className="dm-lbl">Concentration</span>
+                <span className="dm-val val-success">NORMAL (≤ 40%)</span>
+              </div>
+            </div>
+
+            <div className="d-bars-stack">
+              <div className="d-bar-row">
+                <span>Stocks (35%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-green" style={{ width: '35%' }}></div></div>
+              </div>
+              <div className="d-bar-row">
+                <span>Bonds (35%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-green" style={{ width: '35%' }}></div></div>
+              </div>
+              <div className="d-bar-row">
+                <span>Gold (15%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-green" style={{ width: '15%' }}></div></div>
+              </div>
+              <div className="d-bar-row">
+                <span>Cash (15%)</span>
+                <div className="d-bar-track"><div className="d-bar-fill fill-green" style={{ width: '15%' }}></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="demo-action-footer">
+          <button className="hero-btn-primary" onClick={onGetStarted}>
+            Launch Terminal & Run on Your Portfolio
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      {/* ── 4-STEP INSTITUTIONAL WORKFLOW ── */}
+      <section className="lp-section" id="workflow">
+        <div className="lp-section-header">
+          <span className="lp-tag">HOW IT WORKS</span>
+          <h2>Automated End-to-End Execution Pipeline</h2>
+          <p>From real-time database order synchronization to mathematical optimization and trade dispatching.</p>
+        </div>
+
+        <div className="workflow-steps-grid">
+          <div className="wf-step-card">
+            <div className="wf-step-num">01</div>
+            <h4>Connect Capital & Holdings</h4>
+            <p>Syncs real-time buy/sell orders and portfolio capital directly from Supabase PostgreSQL database.</p>
+          </div>
+
+          <div className="wf-step-card">
+            <div className="wf-step-num">02</div>
+            <h4>Continuous Risk Evaluation</h4>
+            <p>Computes covariance matrices (wᵀ · Σ · w), Parametric VaR, and Peak-to-Trough Drawdowns in real time.</p>
+          </div>
+
+          <div className="wf-step-card">
+            <div className="wf-step-num">03</div>
+            <h4>Automated Breach Detection</h4>
+            <p>Monitors single-asset concentration limits (≤ 40%) and mandatory liquidity ratios (≥ 20%) continuously.</p>
+          </div>
+
+          <div className="wf-step-card">
+            <div className="wf-step-num">04</div>
+            <h4>Zero-Penalty Rebalancing</h4>
+            <p>Generates low-impact staged trades, factoring in exact STT, exchange fees, and TWAP slippage to create net risk-adjusted value.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA BANNER ── */}
+      <section className="lp-cta-banner">
+        <div className="cta-content">
+          <h2>Ready to Optimize Your Balance Sheet?</h2>
+          <p>Experience institutional-grade risk management, Markowitz MPT frontiers, and automated regulatory safeguard controls.</p>
+          <button className="hero-btn-primary" onClick={onGetStarted}>
+            Access Risk Engine Terminal Now
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
       <footer className="lp-footer">
-        <span>© 2026 Fintech Asset Manager. All rights reserved.</span>
-        <span>Built for the future of finance.</span>
+        <div className="footer-left">
+          <span className="footer-brand">FINTECH AM</span>
+          <span>© 2026 Asset & Capital Management / Optimization Controls Terminal. All rights reserved.</span>
+        </div>
+        <div className="footer-right">
+          <span>PostgreSQL (Supabase) • Spring Boot • React Quantitative Engine</span>
+        </div>
       </footer>
 
     </div>
