@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import PortfolioPanel, { formatINR, formatINRShorthand } from './PortfolioPanel'
 import MarketsPage from './MarketsPage'
-import PurchaseStocksPage from './PurchaseStocksPage'
+import AnalyticsTab from './AnalyticsTab'
 import './DashboardPage.css'
 
 const NAV_ITEMS = [
@@ -16,10 +16,6 @@ const NAV_ITEMS = [
   {
     id: 'markets', label: 'Markets',
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" stroke="currentColor" strokeWidth="1.8"/></svg>
-  },
-  {
-    id: 'purchase', label: 'Purchase Stocks',
-    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 6h18M16 10a4 4 0 01-8 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
   },
   {
     id: 'analytics', label: 'Analytics',
@@ -92,13 +88,36 @@ export default function DashboardPage({ user, onLogout }) {
   const [activeNav, setActiveNav]     = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // User-configurable portfolio state
-  const [portfolioData, setPortfolioData] = useState({
-    capital: 10000000,
-    riskLimit: 12.4,
-    liquidityLimit: 72.0,
-    expectedReturn: 11.8
+  // User-configurable portfolio state (loads from localStorage or defaults, then validates with backend)
+  const [portfolioData, setPortfolioData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user_portfolio_config')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed && parsed.capital) return parsed
+      }
+    } catch (e) {}
+    return {
+      capital: 10000000,
+      riskLimit: 12.4,
+      liquidityLimit: 72.0,
+      expectedReturn: 11.8
+    }
   })
+
+  // Listen to portfolio_updated events across all components
+  useEffect(() => {
+    const handlePortfolioUpdate = (e) => {
+      if (e.detail && e.detail.capital) {
+        setPortfolioData(e.detail)
+        try {
+          localStorage.setItem('user_portfolio_config', JSON.stringify(e.detail))
+        } catch (err) {}
+      }
+    }
+    window.addEventListener('portfolio_updated', handlePortfolioUpdate)
+    return () => window.removeEventListener('portfolio_updated', handlePortfolioUpdate)
+  }, [])
 
   // Load user's saved portfolio from backend on mount or when user changes
   useEffect(() => {
@@ -107,12 +126,16 @@ export default function DashboardPage({ user, onLogout }) {
       .then(res => res.json())
       .then(data => {
         if (data && data.capital) {
-          setPortfolioData({
+          const fresh = {
             capital: data.capital,
             riskLimit: data.riskLimit,
             liquidityLimit: data.liquidityLimit,
             expectedReturn: data.expectedReturn
-          })
+          }
+          setPortfolioData(fresh)
+          try {
+            localStorage.setItem('user_portfolio_config', JSON.stringify(fresh))
+          } catch (err) {}
         }
       })
       .catch(err => {
@@ -222,9 +245,6 @@ export default function DashboardPage({ user, onLogout }) {
               {item.id === 'markets' && (
                 <span className="db-nav-badge mkt-badge-live">● Live</span>
               )}
-              {item.id === 'purchase' && (
-                <span className="db-nav-badge ps-nav-badge">Buy</span>
-              )}
             </button>
           ))}
         </nav>
@@ -295,8 +315,14 @@ export default function DashboardPage({ user, onLogout }) {
             <PortfolioPanel
               user={user}
               portfolioData={portfolioData}
-              onSaveSuccess={(updated) => setPortfolioData(updated)}
+              onSaveSuccess={(updated) => {
+                setPortfolioData(updated)
+                try {
+                  localStorage.setItem('user_portfolio_config', JSON.stringify(updated))
+                } catch (e) {}
+              }}
               onNavigateDashboard={() => setActiveNav('dashboard')}
+              onNavigateAnalytics={() => setActiveNav('analytics')}
             />
           )}
 
@@ -419,40 +445,13 @@ export default function DashboardPage({ user, onLogout }) {
             <MarketsPage />
           )}
 
-          {activeNav === 'purchase' && (
-            <PurchaseStocksPage user={user} />
-          )}
-
           {activeNav === 'analytics' && (
-            <div className="db-placeholder-tab">
-              <div className="db-tab-hero">
-                <span className="db-tab-tag">Risk & Alpha Intelligence</span>
-                <h2>Deep Analytics & Performance Attribution</h2>
-                <p>Sharpe Ratio, Beta sensitivity, Value at Risk (VaR), and Monte Carlo portfolio projections.</p>
-              </div>
-              <div className="db-kpi-grid">
-                <div className="db-kpi-card">
-                  <div className="db-kpi-title">Sharpe Ratio</div>
-                  <div className="db-kpi-value">2.42</div>
-                  <div className="db-kpi-sub" style={{ color: '#4ade80' }}>Top 5% quartile performance</div>
-                </div>
-                <div className="db-kpi-card">
-                  <div className="db-kpi-title">Portfolio Beta</div>
-                  <div className="db-kpi-value">0.78</div>
-                  <div className="db-kpi-sub" style={{ color: '#60a5fa' }}>Lower market volatility risk</div>
-                </div>
-                <div className="db-kpi-card">
-                  <div className="db-kpi-title">VaR (95% 1-Day)</div>
-                  <div className="db-kpi-value">{formatINR(cap * 0.012)}</div>
-                  <div className="db-kpi-sub" style={{ color: '#fbbf24' }}>Controlled value at risk</div>
-                </div>
-                <div className="db-kpi-card">
-                  <div className="db-kpi-title">Alpha vs Nifty</div>
-                  <div className="db-kpi-value">+4.6%</div>
-                  <div className="db-kpi-sub" style={{ color: '#4ade80' }}>Consistent outperformance</div>
-                </div>
-              </div>
-            </div>
+            <AnalyticsTab
+              user={user}
+              portfolioData={portfolioData}
+              onUpdatePortfolio={(updated) => setPortfolioData(updated)}
+              onNavigatePortfolio={() => setActiveNav('portfolio')}
+            />
           )}
 
           {activeNav === 'settings' && (

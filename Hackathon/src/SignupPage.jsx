@@ -42,20 +42,26 @@ function SignupPage({ onBack, onGoLogin }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       })
-      const data = await res.json()
+      let data = {}
+      try {
+        data = await res.json()
+      } catch {
+        data = { message: `Server returned status ${res.status} (${res.statusText || 'Bad Response'})` }
+      }
 
       if (res.status === 409) {
-        setError(data.message)
+        setError(data.message || 'Email is already registered. Please log in.')
         setErrorType('email')
       } else if (res.ok) {
-        setSuccess(data.message)
+        setSuccess(data.message || 'Account created successfully! Please log in.')
         setTimeout(() => onGoLogin(), 2000)
       } else {
         setError(data.message || 'Something went wrong.')
         setErrorType('general')
       }
     } catch (err) {
-      setError('Cannot reach the server. Make sure the backend is running.')
+      console.error('Signup error:', err)
+      setError('Cannot reach the server. Make sure the backend is running on port 1111.')
       setErrorType('general')
     } finally {
       setLoading(false)

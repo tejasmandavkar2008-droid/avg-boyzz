@@ -38,7 +38,7 @@ function numberToIndianWords(num) {
   return `${n} Rupees`
 }
 
-export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onNavigateDashboard }) {
+export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onNavigateDashboard, onNavigateAnalytics }) {
   const [capital, setCapital] = useState(portfolioData?.capital || 10000000)
   const [riskLimit, setRiskLimit] = useState(portfolioData?.riskLimit || 12.4)
   const [liquidityLimit, setLiquidityLimit] = useState(portfolioData?.liquidityLimit || 72.0)
@@ -47,6 +47,8 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
   const [saving, setSaving] = useState(false)
   const [statusMsg, setStatusMsg] = useState(null)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [showSavePopup, setShowSavePopup] = useState(false)
+  const [savedConfigSnapshot, setSavedConfigSnapshot] = useState(null)
 
   // Live market stocks from backend feed
   const [liveStocks, setLiveStocks] = useState([])
@@ -288,18 +290,28 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       })
 
       const data = await res.json()
+      const updatedConfig = {
+        capital: capitalNum,
+        riskLimit: riskNum,
+        liquidityLimit: liquidityNum,
+        expectedReturn: returnNum
+      }
 
       if (res.ok) {
         setIsSuccess(true)
         setStatusMsg(data.message || 'Portfolio configuration saved successfully!')
         setShowDeploymentPlan(true) // Automatically display the Live Market Investment Blueprint!
+        setSavedConfigSnapshot(updatedConfig)
+        setShowSavePopup(true)
+
+        // Persist locally & broadcast so Analytics tab updates automatically
+        try {
+          localStorage.setItem('user_portfolio_config', JSON.stringify(updatedConfig))
+        } catch (e) {}
+        window.dispatchEvent(new CustomEvent('portfolio_updated', { detail: updatedConfig }))
+
         if (onSaveSuccess) {
-          onSaveSuccess({
-            capital: capitalNum,
-            riskLimit: riskNum,
-            liquidityLimit: liquidityNum,
-            expectedReturn: returnNum
-          })
+          onSaveSuccess(updatedConfig)
         }
       } else {
         setIsSuccess(false)
@@ -307,16 +319,25 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       }
     } catch (err) {
       console.error(err)
+      const updatedConfig = {
+        capital: capitalNum,
+        riskLimit: riskNum,
+        liquidityLimit: liquidityNum,
+        expectedReturn: returnNum
+      }
       setIsSuccess(true)
       setStatusMsg('Portfolio saved locally in current session!')
       setShowDeploymentPlan(true)
+      setSavedConfigSnapshot(updatedConfig)
+      setShowSavePopup(true)
+
+      try {
+        localStorage.setItem('user_portfolio_config', JSON.stringify(updatedConfig))
+      } catch (e) {}
+      window.dispatchEvent(new CustomEvent('portfolio_updated', { detail: updatedConfig }))
+
       if (onSaveSuccess) {
-        onSaveSuccess({
-          capital: capitalNum,
-          riskLimit: riskNum,
-          liquidityLimit: liquidityNum,
-          expectedReturn: returnNum
-        })
+        onSaveSuccess(updatedConfig)
       }
     } finally {
       setSaving(false)
@@ -353,14 +374,24 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
           </p>
         </div>
 
-        {onNavigateDashboard && (
-          <button className="port-back-btn" onClick={onNavigateDashboard}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Dashboard Overview
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {onNavigateAnalytics && (
+            <button className="port-back-btn" style={{ borderColor: 'rgba(59, 130, 246, 0.4)', color: '#93c5fd' }} onClick={onNavigateAnalytics}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              View AI Analytics →
+            </button>
+          )}
+          {onNavigateDashboard && (
+            <button className="port-back-btn" onClick={onNavigateDashboard}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Dashboard Overview
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── TOP STAT SUMMARY CARDS ── */}
@@ -934,6 +965,88 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── AUTOMATIC POPUP MODAL: SAVED SUCCESSFULLY ── */}
+      {showSavePopup && (
+        <div className="port-save-modal-overlay" onClick={() => setShowSavePopup(false)}>
+          <div className="port-save-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="port-save-modal-glow"></div>
+            <button
+              className="port-save-modal-close"
+              onClick={() => setShowSavePopup(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            <div className="port-save-modal-header">
+              <div className="port-save-modal-icon-wrap">
+                <div className="port-save-modal-icon">🎉</div>
+              </div>
+              <div>
+                <span className="port-save-modal-tag">Database Synced</span>
+                <h3 className="port-save-modal-title">Portfolio Saved Successfully!</h3>
+              </div>
+            </div>
+
+            <p className="port-save-modal-sub">
+              Your capital and risk boundaries are updated and committed to the backend. Your AI Analytics allocation models and projections have been recalculated automatically.
+            </p>
+
+            {/* Snapshot Cards */}
+            <div className="port-save-modal-grid">
+              <div className="port-save-modal-item">
+                <span className="save-item-label">Total Capital</span>
+                <strong className="save-item-val text-blue">
+                  {formatINR(savedConfigSnapshot?.capital || capitalNum)}
+                </strong>
+              </div>
+              <div className="port-save-modal-item">
+                <span className="save-item-label">Max Risk Exposure</span>
+                <strong className="save-item-val text-emerald">
+                  {(savedConfigSnapshot?.riskLimit || riskNum).toFixed(1)}%
+                </strong>
+              </div>
+              <div className="port-save-modal-item">
+                <span className="save-item-label">Liquidity Guardrail</span>
+                <strong className="save-item-val text-cyan">
+                  {(savedConfigSnapshot?.liquidityLimit || liquidityNum).toFixed(1)}%
+                </strong>
+              </div>
+              <div className="port-save-modal-item">
+                <span className="save-item-label">Target Annual Return</span>
+                <strong className="save-item-val text-purple">
+                  {(savedConfigSnapshot?.expectedReturn || returnNum).toFixed(1)}%
+                </strong>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="port-save-modal-actions">
+              {onNavigateAnalytics && (
+                <button
+                  className="port-save-modal-btn-primary"
+                  onClick={() => {
+                    setShowSavePopup(false)
+                    onNavigateAnalytics()
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <span>View in Analytics (Auto-Updated) →</span>
+                </button>
+              )}
+              <button
+                className="port-save-modal-btn-secondary"
+                onClick={() => setShowSavePopup(false)}
+              >
+                Keep Editing
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -23,15 +23,20 @@ function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
         body: JSON.stringify({ email, password }),
       })
 
-      const data = await res.json()
+      let data = {}
+      try {
+        data = await res.json()
+      } catch {
+        data = { message: `Server returned status ${res.status} (${res.statusText || 'Bad Response'})` }
+      }
 
       if (res.status === 404) {
         // Email not registered
-        setError(data.message)
+        setError(data.message || 'Email not registered. Please sign up first.')
         setErrorType('email')
       } else if (res.status === 401) {
         // Wrong password
-        setError(data.message)
+        setError(data.message || 'Incorrect password. Please try again.')
         setErrorType('password')
       } else if (res.ok) {
         setError('')
@@ -41,7 +46,8 @@ function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
         setErrorType('general')
       }
     } catch (err) {
-      setError('Cannot reach the server. Make sure the backend is running.')
+      console.error('Login error:', err)
+      setError('Cannot reach the server. Make sure the backend is running on port 1111.')
       setErrorType('general')
     } finally {
       setLoading(false)
