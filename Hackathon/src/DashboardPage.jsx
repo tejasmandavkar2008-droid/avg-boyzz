@@ -328,7 +328,15 @@ export default function DashboardPage({ user, onLogout }) {
               </svg>
               {unreadAlerts > 0 && <span className="db-notif-dot"></span>}
             </button>
-            <div className="db-avatar db-avatar-top">{(user?.name || 'U')[0].toUpperCase()}</div>
+            <div className="db-avatar db-avatar-top" title={user?.name || 'User'}>{(user?.name || 'U')[0].toUpperCase()}</div>
+
+            {/* Prominent Topbar Log Out Button */}
+            <button className="db-topbar-logout-btn" onClick={onLogout} title="Log Out of Account">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Logout</span>
+            </button>
           </div>
         </header>
 

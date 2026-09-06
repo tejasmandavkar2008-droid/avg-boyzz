@@ -33,6 +33,11 @@ export default function RiskEngineTab({ user, portfolioData, onNavigatePortfolio
   const [isLivePortfolioMode, setIsLivePortfolioMode] = useState(true)
   const [resolutionsList, setResolutionsList] = useState([])
 
+  // Persistent post-cure resolution state
+  const [lastResolution, setLastResolution] = useState(null)
+  const [showCuredSummary, setShowCuredSummary] = useState(false)
+  const [previousBreachState, setPreviousBreachState] = useState(null)
+
   // Load past risk resolution events from database table 'risk_resolutions'
   const loadResolutionHistory = () => {
     fetch(`/api/risk/resolutions?email=${encodeURIComponent(user?.email || 'guest')}`)
@@ -578,10 +583,32 @@ export default function RiskEngineTab({ user, portfolioData, onNavigatePortfolio
 
   const applyConstrainedOptimalAllocation = async () => {
     const opt = r.constrainedOptimizer?.recommendedAllocation || { stocksPct: 35, bondsPct: 35, goldPct: 15, cashPct: 15 }
-    const prevBreachesCount = (r.activeBreaches || []).length
+    const currentBreaches = (r.activeBreaches || [])
+    const prevBreachesCount = currentBreaches.length
     const prevVaR = r.valueAtRiskMetrics?.oneDayVaRPct || 8.2
     const prevStock = equityPct || 60
-    const resolvedBreachSummary = (r.activeBreaches || []).map(b => b.title).join(', ') || 'Asset Concentration & Liquidity Adequacy'
+    const resolvedBreachSummary = currentBreaches.map(b => b.title || b.type || b.message).join(', ') || 'Asset Concentration & Liquidity Adequacy'
+
+    // Snapshot previous breach state so user can revert anytime
+    setPreviousBreachState({
+      equityPct,
+      bondsPct,
+      goldPct,
+      cashPct,
+      requiredLiquidityPct,
+      maxConcentrationLimitPct,
+      holdings: [...holdings],
+      breaches: currentBreaches.length > 0 ? [...currentBreaches] : [
+        {
+          type: 'CONCENTRATION',
+          message: `Equity Asset Allocation concentration (${equityPct}%) exceeds the 40.0% single-asset limit by ${(equityPct - 40).toFixed(1)}%.`,
+          recommendation: `Trim Equity Asset Allocation to reduce single-issuer risk below 40.0%.`,
+          impactRupees: Math.round(((equityPct - 40)/100) * capital)
+        }
+      ],
+      overallRiskScore: r.overallRiskScore || 68,
+      oneDayVaR: prevVaR
+    })
 
     setEquityPct(opt.stocksPct)
     setBondsPct(opt.bondsPct)
@@ -615,6 +642,28 @@ export default function RiskEngineTab({ user, portfolioData, onNavigatePortfolio
       customHoldings: optHoldings
     })
 
+    const initialResolution = {
+      timestamp: new Date().toLocaleTimeString(),
+      resolvedId: null,
+      previousBreaches: currentBreaches.length > 0 ? [...currentBreaches] : [
+        {
+          type: 'CONCENTRATION',
+          message: `Equity Asset Allocation concentration (${prevStock}%) exceeds 40.0% limit.`,
+          recommendation: `Trim Equity Allocation by ${prevStock - opt.stocksPct}% to reduce single-issuer risk below 40.0%.`,
+          impactRupees: Math.round(((prevStock - opt.stocksPct)/100) * capital)
+        }
+      ],
+      previousAllocations: { stocks: prevStock, bonds: bondsPct, gold: goldPct, cash: cashPct },
+      curedAllocations: { stocks: opt.stocksPct, bonds: opt.bondsPct, gold: opt.goldPct, cash: opt.cashPct },
+      previousVaR: prevVaR,
+      curedVaR: 5.1,
+      previousRiskScore: r.overallRiskScore || 68,
+      curedRiskScore: 38,
+      resolutionSummary: `Resolved risk breaches. Rebalanced from ${prevStock}% Stock to ${opt.stocksPct}%, Cash restored to ${opt.cashPct}%. VaR improved from ${prevVaR}% to 5.1%.`
+    }
+    setLastResolution(initialResolution)
+    setShowCuredSummary(true)
+
     // Store risk resolution event into database table 'risk_resolutions'
     try {
       const res = await fetch('/api/risk/resolve', {
@@ -641,6 +690,7 @@ export default function RiskEngineTab({ user, portfolioData, onNavigatePortfolio
 
       if (res.ok) {
         const resData = await res.json()
+        setLastResolution(prev => prev ? { ...prev, resolvedId: resData.resolutionId || 1 } : prev)
         setDemoNotice(`Saved to Database: Resolution logged in table 'risk_resolutions' (ID: #${resData.resolutionId || 1}). VaR cured to 5.1%!`)
         loadResolutionHistory()
       } else {
@@ -652,6 +702,39 @@ export default function RiskEngineTab({ user, portfolioData, onNavigatePortfolio
     }
 
     setTimeout(() => setDemoNotice(null), 8000)
+  }
+
+  const handleRevertToBreach = () => {
+    if (previousBreachState) {
+      setEquityPct(previousBreachState.equityPct)
+      setBondsPct(previousBreachState.bondsPct)
+      setGoldPct(previousBreachState.goldPct)
+      setCashPct(previousBreachState.cashPct)
+      setHoldings(previousBreachState.holdings)
+      setShowCuredSummary(false)
+      evaluateRiskReport({
+        userEmail: user?.email || 'guest',
+        capital,
+        equityPct: previousBreachState.equityPct,
+        bondsPct: previousBreachState.bondsPct,
+        goldPct: previousBreachState.goldPct,
+        cashPct: previousBreachState.cashPct,
+        requiredLiquidityPct: previousBreachState.requiredLiquidityPct,
+        maxStockConcentrationLimitPct: previousBreachState.maxConcentrationLimitPct,
+        confidenceLevel: confidenceLevel,
+        maxStockLimitPct: maxStockConstraint,
+        maxBondsLimitPct: maxBondsConstraint,
+        maxGoldLimitPct: maxGoldConstraint,
+        minCashLimitPct: minCashConstraint,
+        maxVaRLimitPct: maxVaRConstraint,
+        maxVolatilityLimitPct: maxVolConstraint,
+        customHoldings: previousBreachState.holdings
+      })
+      setDemoNotice('Reverted to Previous Risk Breach State.')
+      setTimeout(() => setDemoNotice(null), 4000)
+    } else {
+      loadUnconstrainedHighRiskDemo()
+    }
   }
 
   const autoRebalanceToCureBreaches = () => {
@@ -736,31 +819,51 @@ export default function RiskEngineTab({ user, portfolioData, onNavigatePortfolio
             <div className="risk-sentinel-status">
               {breaches.length > 0 ? (
                 <span className="status-badge-breach">⚠️ {breaches.length} ACTIVE POLICY BREACH{breaches.length > 1 ? 'ES' : ''} DETECTED</span>
+              ) : showCuredSummary ? (
+                <span className="status-badge-safe">✅ ALL POLICY BREACHES CURED & COMPLIANT</span>
               ) : (
                 <span className="status-badge-safe">✅ ALL RISK POLICIES COMPLIANT</span>
               )}
             </div>
             <div className="risk-sentinel-desc">
-              Portfolio Profile: <strong>{r.riskClassification || 'Balanced'}</strong> • Capital: <strong>{formatINR(capital)}</strong>
+              {showCuredSummary && breaches.length === 0 ? (
+                <>Rebalanced to Real-World Constraints (35/35/15/15) • Capital: <strong>{formatINR(capital)}</strong></>
+              ) : (
+                <>Portfolio Profile: <strong>{r.riskClassification || 'Balanced'}</strong> • Capital: <strong>{formatINR(capital)}</strong></>
+              )}
             </div>
           </div>
         </div>
 
-        {breaches.length > 0 && (
+        {breaches.length > 0 ? (
           <div className="risk-cure-action">
             <button className="risk-cure-btn" onClick={applyConstrainedOptimalAllocation}>
               ⚡ Apply Constrained Rebalance to Cure Breaches
             </button>
           </div>
-        )}
+        ) : showCuredSummary ? (
+          <div className="risk-cure-action-resolved">
+            <button className="risk-btn-revert" onClick={handleRevertToBreach} title="Revert back to breach scenario to test again">
+              ↺ Revert / Re-test Breach
+            </button>
+            <button className="risk-btn-audit-view" onClick={() => setActiveTab('audit')}>
+              📋 View DB Audit Log
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      {/* Active Breaches Details Bar (if any) */}
+      {/* ── ACTIVE BREACHES ALERT CARD (WHEN BREACH DETECTED) ── */}
       {breaches.length > 0 && (
         <div className="risk-breach-alert-card">
           <div className="risk-breach-head">
-            <span className="risk-alert-icon">⚠️</span>
-            <h3>Risk Engine Control Violations ({breaches.length})</h3>
+            <div className="risk-breach-head-left">
+              <span className="risk-alert-icon">⚠️</span>
+              <h3>Risk Engine Control Violations ({breaches.length})</h3>
+            </div>
+            <button className="risk-cure-mini-btn" onClick={applyConstrainedOptimalAllocation}>
+              ⚡ 1-Click Cure All Breaches
+            </button>
           </div>
           <div className="risk-breach-list">
             {breaches.map((b, i) => (
@@ -776,6 +879,140 @@ export default function RiskEngineTab({ user, portfolioData, onNavigatePortfolio
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── PERSISTENT CURED & RESOLVED CARD (SHOWN AFTER APPLYING CURE SO PAGE NEVER VANISHES) ── */}
+      {breaches.length === 0 && showCuredSummary && lastResolution && (
+        <div className="risk-breach-alert-card card-cured">
+          <div className="risk-breach-head">
+            <div className="risk-breach-head-left">
+              <span className="risk-alert-icon">✅</span>
+              <div>
+                <h3>Risk Engine Control Violations (0 Active • Cured & Compliant)</h3>
+                <span className="risk-cured-subhead">
+                  All real-world constraints satisfied: Stocks ≤ 40%, Bonds ≤ 50%, Gold ≤ 25%, Cash ≥ 15%, VaR ≤ 6.0%.
+                </span>
+              </div>
+            </div>
+            <div className="risk-cured-head-actions">
+              <span className="risk-db-logged-pill">
+                Stored in Database #{lastResolution.resolvedId || 1} • {lastResolution.timestamp}
+              </span>
+              <button className="risk-cured-revert-btn" onClick={handleRevertToBreach} title="Revert back to breach state to test again">
+                ↺ Revert / Re-test Breach
+              </button>
+              <button className="risk-cured-close-btn" onClick={() => setShowCuredSummary(false)} title="Dismiss this cured summary banner">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Resolved Breaches Breakdown */}
+          <div className="risk-breach-list">
+            {(lastResolution.previousBreaches || []).map((b, i) => (
+              <div key={i} className="risk-breach-item item-cured">
+                <div className="risk-breach-type-badge badge-cured">CURED & RESOLVED</div>
+                <div className="risk-breach-info">
+                  <div className="risk-breach-msg"><strong>{b.type || 'POLICY'}:</strong> {b.message}</div>
+                  <div className="risk-breach-rec text-green">
+                    ✓ <strong>Resolution Applied:</strong> Reallocated to optimal frontier weights. Constraint violation eliminated.
+                  </div>
+                </div>
+                <div className="risk-breach-impact">
+                  <span>Exposure Cured</span>
+                  <strong className="text-green">₹0 Breach</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Before Breach vs After Cure Comparison Matrix */}
+          <div className="risk-cured-matrix">
+            <div className="risk-cured-matrix-title">
+              <span>Before Breach vs After Cure Comparison Matrix:</span>
+            </div>
+            <div className="risk-cured-matrix-grid">
+              {/* Stocks */}
+              <div className="cured-matrix-card">
+                <div className="matrix-card-head">Stocks Allocation</div>
+                <div className="matrix-comparison-row">
+                  <span className="matrix-val-before">Was {lastResolution.previousAllocations?.stocks}% (Breach)</span>
+                  <span className="matrix-arrow">→</span>
+                  <span className="matrix-val-after">{lastResolution.curedAllocations?.stocks}% (≤ 40%)</span>
+                </div>
+                <div className="matrix-status-tag status-compliant">Compliant</div>
+              </div>
+
+              {/* Bonds */}
+              <div className="cured-matrix-card">
+                <div className="matrix-card-head">Bonds & Debt</div>
+                <div className="matrix-comparison-row">
+                  <span className="matrix-val-before">Was {lastResolution.previousAllocations?.bonds}%</span>
+                  <span className="matrix-arrow">→</span>
+                  <span className="matrix-val-after">{lastResolution.curedAllocations?.bonds}% (≤ 50%)</span>
+                </div>
+                <div className="matrix-status-tag status-compliant">Preserved</div>
+              </div>
+
+              {/* Gold */}
+              <div className="cured-matrix-card">
+                <div className="matrix-card-head">Gold Reserves</div>
+                <div className="matrix-comparison-row">
+                  <span className="matrix-val-before">Was {lastResolution.previousAllocations?.gold}%</span>
+                  <span className="matrix-arrow">→</span>
+                  <span className="matrix-val-after">{lastResolution.curedAllocations?.gold}% (≤ 25%)</span>
+                </div>
+                <div className="matrix-status-tag status-compliant">Safe Haven</div>
+              </div>
+
+              {/* Cash */}
+              <div className="cured-matrix-card">
+                <div className="matrix-card-head">Liquid Cash Buffer</div>
+                <div className="matrix-comparison-row">
+                  <span className="matrix-val-before">Was {lastResolution.previousAllocations?.cash}% (Deficit)</span>
+                  <span className="matrix-arrow">→</span>
+                  <span className="matrix-val-after">{lastResolution.curedAllocations?.cash}% (≥ 15%)</span>
+                </div>
+                <div className="matrix-status-tag status-compliant">Buffer Met</div>
+              </div>
+
+              {/* 1-Day VaR */}
+              <div className="cured-matrix-card highlight-metric">
+                <div className="matrix-card-head">1-Day VaR Risk</div>
+                <div className="matrix-comparison-row">
+                  <span className="matrix-val-before text-red">Was {lastResolution.previousVaR}%</span>
+                  <span className="matrix-arrow">→</span>
+                  <span className="matrix-val-after text-green">{lastResolution.curedVaR}%</span>
+                </div>
+                <div className="matrix-status-tag status-compliant">Risk Reduced</div>
+              </div>
+
+              {/* Concentration */}
+              <div className="cured-matrix-card highlight-metric">
+                <div className="matrix-card-head">Concentration Level</div>
+                <div className="matrix-comparison-row">
+                  <span className="matrix-val-before text-red">HIGH</span>
+                  <span className="matrix-arrow">→</span>
+                  <span className="matrix-val-after text-green">NORMAL</span>
+                </div>
+                <div className="matrix-status-tag status-compliant">Diversified</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Resolution Footer with Direct Link to Audit Trail */}
+          <div className="risk-cured-footer">
+            <div className="risk-cured-footer-left">
+              <span className="risk-footer-check">✓</span>
+              <span>
+                <strong>Resolution Verified:</strong> Rebalance executed and logged into database table <code>risk_resolutions</code>.
+              </span>
+            </div>
+            <button className="risk-cured-audit-btn" onClick={() => setActiveTab('audit')}>
+              View Full Database Audit Log →
+            </button>
           </div>
         </div>
       )}

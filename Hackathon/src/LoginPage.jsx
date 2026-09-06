@@ -40,7 +40,11 @@ function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
         setErrorType('password')
       } else if (res.ok) {
         setError('')
-        onLoginSuccess({ name: data.name, email: data.email })
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token)
+          localStorage.setItem('auth_user', JSON.stringify({ name: data.name, email: data.email, token: data.token }))
+        }
+        onLoginSuccess({ name: data.name, email: data.email, token: data.token })
       } else {
         setError(data.message || 'Something went wrong.')
         setErrorType('general')

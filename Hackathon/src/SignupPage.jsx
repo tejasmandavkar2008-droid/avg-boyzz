@@ -53,6 +53,10 @@ function SignupPage({ onBack, onGoLogin }) {
         setError(data.message || 'Email is already registered. Please log in.')
         setErrorType('email')
       } else if (res.ok) {
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token)
+          localStorage.setItem('auth_user', JSON.stringify({ name: data.name, email: data.email, token: data.token }))
+        }
         setSuccess(data.message || 'Account created successfully! Please log in.')
         setTimeout(() => onGoLogin(), 2000)
       } else {

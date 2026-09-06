@@ -271,6 +271,48 @@
   color: #ffffff;
 }
 
+.risk-cure-action-resolved {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.risk-btn-revert {
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.risk-btn-revert:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.risk-btn-audit-view {
+  padding: 10px 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 10px;
+  color: #34d399;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.risk-btn-audit-view:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
 .risk-cure-btn {
   padding: 12px 22px;
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
@@ -297,13 +339,33 @@
   padding: 18px 22px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  animation: breachAlertFadeIn 0.3s ease-out;
+}
+
+@keyframes breachAlertFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.risk-breach-alert-card.card-cured {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.15);
 }
 
 .risk-breach-head {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.risk-breach-head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .risk-breach-head h3 {
@@ -311,6 +373,87 @@
   font-weight: 800;
   color: #f87171;
   margin: 0;
+}
+
+.card-cured .risk-breach-head h3 {
+  color: #34d399;
+}
+
+.risk-cured-subhead {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 3px;
+}
+
+.risk-cured-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.risk-db-logged-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.risk-cured-revert-btn {
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.risk-cured-revert-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.risk-cured-close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.risk-cured-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.risk-cure-mini-btn {
+  padding: 6px 14px;
+  background: #10b981;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.risk-cure-mini-btn:hover {
+  background: #059669;
 }
 
 .risk-breach-list {
@@ -331,6 +474,11 @@
   border-radius: 12px;
 }
 
+.risk-breach-item.item-cured {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(52, 211, 153, 0.25);
+}
+
 .risk-breach-type-badge {
   font-size: 10px;
   font-weight: 800;
@@ -339,6 +487,10 @@
   background: #dc2626;
   color: #ffffff;
   letter-spacing: 0.06em;
+}
+
+.risk-breach-type-badge.badge-cured {
+  background: #059669;
 }
 
 .risk-breach-info {
@@ -360,6 +512,10 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
+.risk-breach-rec.text-green {
+  color: #6ee7b7;
+}
+
 .risk-breach-impact {
   display: flex;
   flex-direction: column;
@@ -376,6 +532,145 @@
 .risk-breach-impact strong {
   font-size: 15px;
   color: #f87171;
+}
+
+.risk-breach-impact strong.text-green {
+  color: #34d399;
+}
+
+/* ── CURED MATRIX ── */
+.risk-cured-matrix {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.risk-cured-matrix-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.risk-cured-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.cured-matrix-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cured-matrix-card.highlight-metric {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.matrix-card-head {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.matrix-comparison-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.matrix-val-before {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: line-through;
+  font-size: 11px;
+}
+
+.matrix-val-before.text-red {
+  color: #f87171;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.matrix-arrow {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.matrix-val-after {
+  font-weight: 700;
+  color: #34d399;
+}
+
+.matrix-val-after.text-green {
+  color: #34d399;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.matrix-status-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.status-compliant {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+/* ── CURED FOOTER ── */
+.risk-cured-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12.5px;
+  color: #cbd5e1;
+}
+
+.risk-cured-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.risk-footer-check {
+  color: #34d399;
+  font-weight: 800;
+}
+
+.risk-cured-audit-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 6px;
+  color: #34d399;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.risk-cured-audit-btn:hover {
+  background: rgba(52, 211, 153, 0.15);
 }
 
 /* ── TAB NAV ── */
