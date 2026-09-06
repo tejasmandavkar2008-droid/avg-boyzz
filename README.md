@@ -1,6 +1,6 @@
-# 🛡️ Institutional Asset & Capital Management / Optimization Controls
+# 🛡️ Institutional Capital Management, Quantitative Risk Engine & Optimization Platform
 
-> **FinTech Hackathon Solution** — Automated Multi-Asset Portfolio Optimization, Real-Time Risk Safeguards, Markowitz Efficient Frontier, and Zero-Penalty Dynamic Rebalancing Engine.
+> **FinTech Hackathon Project by avg boyzz** — Automated Multi-Asset Portfolio Optimization, Real-World Constraint Solver, Real-Time Risk Safeguards, AI Risk Copilot, Markowitz Efficient Frontier, and PostgreSQL Audit-Logged 1-Click Breach Remediation.
 
 ---
 
@@ -8,11 +8,29 @@
 
 Financial institutions face significant challenges managing balance sheets across fluctuating equities, sovereign bonds, gold reserves, and liquid cash. When market shocks occur, static risk limits and delayed manual execution result in balance sheet damage, regulatory breaches, and high transaction penalties.
 
-This platform provides an **Automated Capital Management & Optimization Control Engine** that solves the three core challenge requirements:
+Traditional algorithms often commit the **"naive optimization flaw"**—allocating 100% of capital to whichever single asset class produced the highest recent return.
 
-1. **Optimization Strategy**: Dynamically allocates capital across multi-asset classes to maximize risk-adjusted returns (Sharpe Ratio) while strictly respecting liquidity and capital constraints.
-2. **Control & Safeguard System (Risk Engine ⭐)**: Quantifies real-time risk metrics (Portfolio Volatility, 95%/99% VaR, Maximum Drawdown, Liquidity Ratios, and Single-Asset Concentration limits) and automatically triggers actionable alerts and 1-click remediation.
-3. **Executive Decision Dashboard**: Provides financial officers and risk managers with real-time NSE market telemetry, Markowitz Efficient Frontier curves, crisis stress simulations, and friction-optimized rebalancing blueprints.
+This platform provides an **Automated Capital Management & Quantitative Risk Engine** that strictly enforces **Real-World Constraints**, continuously tracks market step-down shocks, and enables **1-click database-logged remediation**.
+
+---
+
+## 🎯 The Real-World Constraints Model
+
+Our optimization engine strictly satisfies institutional governance guardrails:
+
+$$\text{Stock Exposure} \le 40\% \quad\Big|\quad \text{Sovereign Bonds} \le 50\% \quad\Big|\quad \text{Gold Reserves} \le 25\% \quad\Big|\quad \text{Liquid Cash Buffer} \ge 15\%$$
+$$\text{Portfolio 1-Day VaR}_{95\%} \le 6.0\% \quad\Big|\quad \text{Annualized Volatility } \sigma_p \le 14.0\%$$
+
+### Case Study: Before vs. After Optimization
+
+| Metric / Asset Class | Unconstrained Problem Portfolio | System Constrained Portfolio | Institutional Compliance Status |
+| :--- | :--- | :--- | :--- |
+| **Equities (Stocks)** | **60.0%** (₹6,00,000) | **35.0%** (₹3,50,000) | ✅ Cured to $\le 40\%$ Limit |
+| **Sovereign Bonds** | **20.0%** (₹2,00,000) | **35.0%** (₹3,50,000) | ✅ Preserved $\le 50\%$ Limit |
+| **Gold Reserves** | **10.0%** (₹1,00,000) | **15.0%** (₹1,50,000) | ✅ Safe Haven $\le 25\%$ Limit |
+| **Liquid Cash Buffer** | **10.0%** (Deficit) | **15.0%** (₹1,50,000) | ✅ Guardrail Met $\ge 15\%$ Limit |
+| **1-Day Value at Risk (VaR)** | **8.2%** (Critical Risk) | **5.1%** (Controlled) | ✅ Within $\le 6.0\%$ VaR Budget |
+| **Single-Asset Concentration** | **HIGH BREACH** | **NORMAL / BALANCED** | ✅ Diversified Equilibrium |
 
 ---
 
@@ -20,27 +38,34 @@ This platform provides an **Automated Capital Management & Optimization Control 
 
 ```mermaid
 flowchart TD
-    subgraph Frontend["React (Vite) Executive Dashboard"]
+    subgraph Frontend["React 19 (Vite) Financial Terminal"]
         UI_Dash[Executive Overview Dashboard]
-        UI_Risk[Risk Engine Terminal ⭐]
+        UI_Risk[Risk Engine Terminal & Sentinel ⭐]
+        UI_Analytics[Quantitative Analytics & Compounding]
         UI_Frontier[Markowitz Efficient Frontier]
         UI_Market[Live NSE Markets Terminal]
         UI_Rebalance[Friction Cost Optimizer]
+        UI_Copilot[AI Risk & Portfolio Copilot 🤖]
     end
 
-    subgraph Backend["Spring Boot 3.x REST API Engine"]
-        Ctrl_Risk[RiskController & Sentinel]
+    subgraph Backend["Spring Boot 3.5 REST API & Math Core"]
+        Ctrl_Auth[AuthController & JWT Engine]
+        Ctrl_Risk[RiskController & Sentinel Alert Engine]
         Ctrl_Port[PortfolioController]
         Ctrl_Market[MarketController]
         Ctrl_Orders[PurchaseOrderController]
+        Ctrl_AI[AiCopilotController]
         
-        Svc_Risk[RiskEngineService - Math Core]
-        Svc_Yahoo[YahooFinanceService - Live Feed]
+        Svc_Risk[RiskEngineService - Quantitative Math]
+        Svc_Yahoo[YahooFinanceService - Live Feeds]
     end
 
-    subgraph Database["H2 / JPA Persistence Layer"]
-        DB_Port[(Portfolios Table)]
-        DB_Orders[(Purchase Orders Table)]
+    subgraph Database["Supabase PostgreSQL Cloud DB"]
+        DB_Users[(users Table - BCrypt / JWT)]
+        DB_Port[(user_portfolios Table)]
+        DB_Orders[(orders Table)]
+        DB_Resolutions[(risk_resolutions Table)]
+        DB_Reminders[(risk_reminders Table)]
     end
 
     subgraph External["External Live Market Feeds"]
@@ -48,78 +73,61 @@ flowchart TD
     end
 
     UI_Risk -->|POST /api/risk/evaluate| Ctrl_Risk
-    UI_Risk -->|GET /api/risk/my-portfolio| Ctrl_Risk
+    UI_Risk -->|POST /api/risk/resolve| Ctrl_Risk
+    Ctrl_Risk --> DB_Resolutions
+    UI_Risk -->|GET /api/risk/reminders| Ctrl_Risk
+    Ctrl_Risk --> DB_Reminders
     UI_Market -->|GET /api/market/stocks| Ctrl_Market
     Ctrl_Market --> Svc_Yahoo --> Yahoo_API
     Ctrl_Risk --> Svc_Risk
     Ctrl_Orders --> DB_Orders
     Ctrl_Port --> DB_Port
-    Svc_Risk --> DB_Port
-    Svc_Risk --> DB_Orders
+    Ctrl_Auth --> DB_Users
+    UI_Copilot -->|POST /api/ai/chat| Ctrl_AI
 ```
 
 ---
 
-## 🧮 Mathematical & Financial Risk Logic (35% Evaluation Weight)
+## 🧮 Mathematical & Financial Risk Models
 
 ### 1. Multi-Asset Portfolio Volatility ($\sigma_p$)
-Portfolio volatility is computed using the covariance matrix across asset weights ($w$) and annualized volatilities ($\sigma$):
 $$\sigma_p = \sqrt{ \mathbf{w}^T \mathbf{\Sigma} \mathbf{w} } = \sqrt{ \sum_{i} w_i^2 \sigma_i^2 + 2 \sum_{i < j} w_i w_j \text{Cov}(i, j) }$$
-- Annualized to standard trading periods ($\times \sqrt{252}$).
+- Annualized with trading period factor: $\times \sqrt{252}$.
 - Daily volatility: $\sigma_{\text{daily}} = \frac{\sigma_p}{\sqrt{252}}$.
 
-### 2. Value at Risk ($\text{VaR}$) & Expected Shortfall ($\text{CVaR}$)
-Parametric Value at Risk at confidence level $\alpha \in \{95\%, 99\%\}$:
+### 2. Parametric Value at Risk ($\text{VaR}$) & Expected Shortfall ($\text{CVaR}$)
 $$\text{VaR}_{\alpha} = Z_{\alpha} \times \sigma_{\text{daily}} \times \text{Portfolio Value}$$
-- At 95% confidence: $Z = 1.6449 \implies$ *"At 95% confidence, the expected one-day loss will not exceed ₹X."*
+- At 95% confidence: $Z = 1.6449$.
 - At 99% confidence: $Z = 2.3263$.
-- 10-Day Horizon: $\text{VaR}_{\text{10-Day}} = \text{VaR}_{\text{1-Day}} \times \sqrt{10}$.
-- Conditional VaR (Expected Shortfall / Tail Risk):
+- Conditional Tail Risk (CVaR):
 $$\text{CVaR}_{\alpha} = \text{Portfolio Value} \times \sigma_{\text{daily}} \times \frac{\phi(Z_{\alpha})}{1 - \alpha}$$
 
 ### 3. Maximum Drawdown ($\text{MDD}$)
-Measures the largest peak-to-trough decline over the portfolio trajectory:
-$$\text{MDD} = \frac{\text{Peak Value} - \text{Trough Value}}{\text{Peak Value}} \times 100\%$$
-- Tracks peak capital reserves, drawdown depth in ₹, recovery status, and time-under-water.
+$$\text{MDD} = \frac{\text{Peak Capital} - \text{Trough Capital}}{\text{Peak Capital}} \times 100\%$$
 
-### 4. Liquidity Ratio & Mandatory Buffer Control
-Ensures capital reserves meet regulatory redemption liquidity thresholds:
-$$\text{Liquidity Ratio} = \frac{\text{Cash} + 0.40 \times \text{Liquid Sovereign Bonds}}{\text{Total Portfolio Capital}} \times 100\%$$
-- **Enforcement Rule**: If $\text{Liquidity Ratio} < \text{Required Threshold}$ (e.g. 13% vs 20%), triggers `⚠️ LIQUIDITY BREACH` with quantified capital shortfall in ₹.
+### 4. Mandatory Liquidity Guardrail Ratio
+$$\text{Liquidity Ratio} = \frac{\text{Liquid Cash} + 0.40 \times \text{Sovereign G-Sec Bonds}}{\text{Total Portfolio Capital}} \times 100\%$$
 
-### 5. Single-Asset Concentration Risk & HHI Index
-Monitors individual stock / asset weight limits:
-$$\text{Weight}_i = \frac{\text{Exposure of Asset}_i}{\text{Total Capital}} \times 100\%$$
-- **Enforcement Rule**: If $\text{Weight}_i > \text{Max Concentration Limit}$ (e.g. Stock A = 65% > 40%), triggers `⚠️ CONCENTRATION BREACH: Stock A exceeds 40% limit by 25%`.
-- Herfindahl-Hirschman Index ($\text{HHI}$): $\text{HHI} = \sum_{i} (\text{Weight}_i)^2$.
-
-### 6. Markowitz Modern Portfolio Theory (MPT) & Tangency Portfolio
-Generates the optimal Risk vs. Return hyperbola:
+### 5. Markowitz Modern Portfolio Theory (MPT) & Sharpe Maximization
 $$\max_{\mathbf{w}} \text{Sharpe Ratio} = \frac{E[R_p] - R_f}{\sigma_p}$$
-- Plots Minimum Variance Portfolio (MVP), Optimal Tangency Portfolio (Maximum Sharpe), and Capital Allocation Line (CAL) against user allocations.
 
-### 7. Rebalancing Friction, Statutory Taxes & Slippage Optimization
-Mitigates turnover penalties by comparing total friction against gross risk reduction benefit:
+### 6. Statutory Transaction Friction & Slippage Model
 $$\text{Friction Cost} = \text{Turnover} \times (\text{STT}_{0.10\%} + \text{NSE Fee}_{0.00345\%} + \text{Stamp Duty}_{0.015\%} + \text{GST} + \text{Slippage}_{0.08\%})$$
 $$\text{Net Value Created} = \text{Risk Penalty Reduction} - \text{Friction Cost}$$
 
 ---
 
-## 🚀 Key Features & Dashboard Modules
+## 🚀 Key Modules & Capabilities
 
 1. **⭐ Institutional Risk Engine Terminal**: Real-time evaluation of the 5 core financial risk metrics, Sentinel breach alert banner, and 1-click auto-cure rebalancing.
-2. **📈 Markowitz Efficient Frontier Visualizer**: Interactive SVG curve mapping Expected Return vs. Volatility with Tangency Max Sharpe target.
-3. **💰 Friction & Turnover Cost Optimizer**: Complete breakdown of STT, brokerage, exchange turnover fees, and market slippage with staged execution.
-4. **📊 Live NSE Market Terminal**: Real-time Indian equity feed with Current Price, 5-Session Historical Chart, Daily Return, Volatility spread, Volume, and Market Trend indicators.
-5. **🌪️ Macro Crisis Stress Tester**: Mathematical capital shock simulation for 2008 GFC, 2020 Covid Liquidity Shock, and RBI Inflation Rate Spikes.
-
----
-
-## 🛠️ Technology Stack
-
-- **Backend**: Java 21, Spring Boot 3.x, Spring Data JPA, H2 In-Memory Database, Java HttpClient.
-- **Frontend**: React 18, Vite, Vanilla CSS Design System, SVG Dynamic Charting.
-- **Live Data**: Yahoo Finance v8 Real-Time Quote API with 15s in-memory rate-limit cache.
+2. **💾 PostgreSQL Database Audit Trail (`risk_resolutions`)**: Every cured breach is permanently logged with before/after allocations, VaR improvement, and resolution ID.
+3. **🔔 Market Step-Down Sentinel (`risk_reminders`)**: Automated alerts triggered when market drawdowns breach configured risk limits with 1-click mitigation actions.
+4. **🤖 AI Risk & Portfolio Copilot**: Interactive conversational assistant explaining quantitative models, breach causes, and stress scenarios.
+5. **📈 Markowitz Efficient Frontier Visualizer**: Interactive dynamic tangent curve mapping Expected Return vs. Volatility with Tangency Max Sharpe target.
+6. **📊 Multi-Year Wealth Compounding Engine**: 1Y to 20Y capital projection simulator based on live blended CAGR with milestone timeline charts.
+7. **💰 Friction & Statutory Cost Optimizer**: Micro-level breakdown of STT, brokerage, exchange turnover fees, and market slippage.
+8. **📈 Live NSE Market Terminal**: Real-time Indian equity feed with Current Price, 5-Session Historical Chart, Daily Return, Volatility spread, and Volume indicators.
+9. **🔐 Enterprise JWT Security**: RFC 7519 HS256 JWT tokens + BCrypt password hashing + automatic session restoration on browser refresh.
 
 ---
 
@@ -128,40 +136,78 @@ $$\text{Net Value Created} = \text{Risk Penalty Reduction} - \text{Friction Cost
 ### Prerequisites
 - **Java 17+** (or Java 21)
 - **Node.js 18+** & `npm`
+- **Git**
 
-### 1. Start Spring Boot Backend
+---
+
+### Step 1: Clone the Repository
 ```bash
+git clone https://github.com/your-repo/avg-boyzz.git
+cd avg-boyzz
+```
+
+---
+
+### Step 2: Start the Spring Boot Backend
+
+Open a terminal in the project root:
+
+```bash
+# Navigate to the backend folder
 cd Backened
+
+# On Windows (PowerShell / Command Prompt):
+.\mvnw.cmd spring-boot:run
+
+# On macOS / Linux:
 ./mvnw spring-boot:run
 ```
-*Backend runs on `http://localhost:8080`.*
 
-### 2. Start React Frontend
+- **Backend Port**: `http://localhost:8080`
+- **Database**: Pre-configured with Supabase PostgreSQL cloud database (automatic table initialization).
+
+---
+
+### Step 3: Start the React Frontend
+
+Open a **second terminal** in the project root:
+
 ```bash
+# Navigate to the frontend folder
 cd Hackathon
+
+# Install frontend dependencies
 npm install
+
+# Start the Vite development server
 npm run dev
 ```
-*Frontend runs on `http://localhost:5173` with automatic `/api` proxying to `http://localhost:8080`.*
+
+- **Frontend URL**: `http://localhost:5173`
+- **Proxying**: The frontend automatically routes all `/api/*` calls to the Spring Boot backend on `http://localhost:8080`.
 
 ---
 
 ## 📡 API Reference Overview
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/risk/my-portfolio?email=...` | Evaluates live risk metrics directly on user's database portfolio and active stock orders. |
-| `POST` | `/api/risk/evaluate` | Evaluates custom asset allocations, volatility, VaR, MDD, liquidity, and concentration. |
-| `GET` | `/api/risk/simulate-breach` | Pre-loaded breach simulation demonstrating 65% concentration and 9% liquidity violations. |
-| `GET` | `/api/market/stocks` | Returns real-time NSE quotes, day high/low, 52-week range, and 5-day sparklines. |
-| `GET` | `/api/market/indices` | Returns live benchmark indices (NIFTY 50, BSE SENSEX, BANK NIFTY, USD/INR). |
-| `POST` | `/api/orders/buy` | Executes stock purchase order and updates active holdings. |
-| `GET` | `/api/portfolio?email=...` | Retrieves user capital limits and target constraints. |
+| HTTP Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Creates a new user account with BCrypt password hashing and issues a signed JWT token. |
+| `POST` | `/api/auth/login` | Authenticates credentials and returns user identity and signed JWT token. |
+| `GET` | `/api/auth/me` | Verifies and validates active JWT token from `Authorization: Bearer <token>` header. |
+| `GET` | `/api/risk/my-portfolio?email=...` | Evaluates live mathematical risk metrics against active holdings and order history. |
+| `POST` | `/api/risk/evaluate` | Evaluates custom allocations for Volatility, VaR, MDD, Liquidity, and Concentration. |
+| `POST` | `/api/risk/resolve` | Persists a cured risk resolution event into table `risk_resolutions`. |
+| `GET` | `/api/risk/resolutions?email=...` | Fetches historical database resolution audit log for the user. |
+| `GET` | `/api/risk/reminders?email=...` | Retrieves market step-down reminders from table `risk_reminders`. |
+| `POST` | `/api/risk/reminders/trigger` | Triggers a market step-down risk breach reminder. |
+| `POST` | `/api/ai/chat` | AI Risk Copilot chatbot for natural language explanations and stress test scenarios. |
+| `GET` | `/api/market/stocks` | Fetches real-time NSE stock prices, 52-week ranges, and historical sparklines. |
+| `GET` | `/api/market/indices` | Fetches real-time market benchmark indices (NIFTY 50, SENSEX, BANK NIFTY). |
+| `POST` | `/api/orders/buy` | Executes stock purchase order and updates active user holdings. |
+| `POST` | `/api/portfolio/save` | Saves user capital, risk tolerance, and liquidity limits. |
 
 ---
 
-## 🏆 Innovation & Problem Approach Highlights
-
-- **Sentinel Breach Detection**: Proactive compliance monitoring that prevents unexpected risk exposure before execution.
-- **Zero-Penalty Rebalancing**: Quantifies statutory taxes (STT) and execution slippage to ensure rebalancing is always economically value-accretive.
-- **Real Database Integration**: Calculates live mathematical risk directly against active stock holdings, cash balance, and saved parameters.
+## 👥 Team — avg boyzz
+- Built for the 2026 FinTech Hackathon.
