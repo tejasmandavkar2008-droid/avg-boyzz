@@ -50,23 +50,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
   const [showSavePopup, setShowSavePopup] = useState(false)
   const [savedConfigSnapshot, setSavedConfigSnapshot] = useState(null)
 
-  // Live market stocks from backend feed
-  const [liveStocks, setLiveStocks] = useState([])
-  const [showDeploymentPlan, setShowDeploymentPlan] = useState(false)
-  const [executionState, setExecutionState] = useState(null) // null | 'executing' | 'completed'
-
-  // Fetch live market data
-  useEffect(() => {
-    fetch('/api/market/stocks')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setLiveStocks(data)
-        }
-      })
-      .catch(err => console.warn('Could not load live stocks for portfolio blueprint:', err))
-  }, [])
-
   // Sync if portfolioData updates from parent
   useEffect(() => {
     if (portfolioData) {
@@ -128,142 +111,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
     { label: 'Gold & Hedge Assets',   pct: goldPct, color: '#fbbf24', amount: (capitalNum * goldPct / 100) },
   ]
 
-  // ── GENERATE REAL LIVE MARKET INVESTMENT DEPLOYMENT BLUEPRINT ──
-  const generateInvestmentPlan = () => {
-    const deployableCapital = capitalNum * ((100 - liquidPct) / 100)
-    const liquidCashAmount = capitalNum * (liquidPct / 100)
-
-    // Fallback stocks if liveStocks hasn't arrived yet
-    const stocksPool = liveStocks.length > 0 ? liveStocks : [
-      { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', sector: 'Energy', price: 1322.00, change: 45.0, changePct: 3.52 },
-      { symbol: 'TCS', name: 'Tata Consultancy Services', sector: 'IT', price: 2304.00, change: -95.3, changePct: -3.97 },
-      { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', sector: 'Banking', price: 712.10, change: 3.1, changePct: 0.44 },
-      { symbol: 'INFY', name: 'Infosys Ltd.', sector: 'IT', price: 1130.00, change: -3.8, changePct: -0.34 },
-      { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd.', sector: 'Automobile', price: 1085.60, change: 15.2, changePct: 1.15 },
-      { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd.', sector: 'Banking', price: 1423.20, change: -30.8, changePct: -2.12 },
-      { symbol: 'BHARTIARTL', name: 'Bharti Airtel Ltd.', sector: 'Telecom', price: 1840.00, change: 28.1, changePct: 1.55 },
-      { symbol: 'ITC', name: 'ITC Ltd.', sector: 'FMCG', price: 264.10, change: 8.6, changePct: 3.37 },
-      { symbol: 'TATASTEEL', name: 'Tata Steel Ltd.', sector: 'Metals', price: 188.79, change: 4.44, changePct: 2.41 },
-    ]
-
-    const getStock = (sym) => stocksPool.find(s => s.symbol === sym) || { price: 1000, change: 0, changePct: 0 }
-
-    // Proportions calibrated to user risk tolerance
-    // Higher risk tolerance -> higher allocation to high-beta / growth stocks
-    // Lower risk tolerance -> higher allocation to defensive large caps & gold
-    let equityWeight = 0.60
-    let goldWeight = 0.15
-    let debtBondWeight = 0.25
-
-    if (riskNum <= 15) {
-      equityWeight = 0.40
-      goldWeight = 0.25
-      debtBondWeight = 0.35
-    } else if (riskNum >= 25) {
-      equityWeight = 0.75
-      goldWeight = 0.10
-      debtBondWeight = 0.15
-    }
-
-    const items = []
-
-    // 1. Mandatory Liquidity Guardrail
-    items.push({
-      asset: 'HDFC / Axis Instant Liquid Cash & Overnight T-Bills',
-      symbol: 'LIQUID_CASH',
-      type: 'Liquid Cash Buffer',
-      sector: 'Instant Liquidity Reserve',
-      livePrice: 100.00,
-      priceUnit: '₹100 / NAV Unit',
-      change: 0.05,
-      changePct: 0.05,
-      weightPct: liquidPct,
-      allocatedAmount: liquidCashAmount,
-      shares: Math.floor(liquidCashAmount / 100),
-      riskRating: '0% Volatility (Instant T+0)',
-      riskTagColor: '#22d3ee',
-      rationale: `Enforces your exact minimum ${liquidPct}% liquidity limit for emergency withdrawals without market lock-in.`
-    })
-
-    // 2. Gold Hedging
-    const goldAmount = deployableCapital * goldWeight
-    const goldLivePrice = 7245.00 // Gold ETF unit NAV
-    items.push({
-      asset: 'Nippon India Sovereign Gold ETF',
-      symbol: 'GOLDBEES',
-      type: 'Commodity Hedge',
-      sector: 'Precious Metals',
-      livePrice: goldLivePrice,
-      priceUnit: 'Live NAV',
-      change: 31.0,
-      changePct: 0.43,
-      weightPct: Math.round(((100 - liquidPct) * goldWeight)),
-      allocatedAmount: goldAmount,
-      shares: Math.floor(goldAmount / goldLivePrice),
-      riskRating: 'Low Correlation / Safe Haven',
-      riskTagColor: '#fbbf24',
-      rationale: 'Hedges against inflation and equity market corrections.'
-    })
-
-    // 3. High-Quality Sovereign / Corporate Debt Bond Fund
-    const debtAmount = deployableCapital * debtBondWeight
-    const bondNAV = 1000.00
-    items.push({
-      asset: 'Bharat Bond G-Sec 10Y Target Maturity ETF',
-      symbol: 'BHARATBOND',
-      type: 'Fixed Income',
-      sector: 'Sovereign Debt',
-      livePrice: bondNAV,
-      priceUnit: 'Live NAV',
-      change: 0.20,
-      changePct: 0.02,
-      weightPct: Math.round(((100 - liquidPct) * debtBondWeight)),
-      allocatedAmount: debtAmount,
-      shares: Math.floor(debtAmount / bondNAV),
-      riskRating: 'AAA Sovereign (Low Risk)',
-      riskTagColor: '#a78bfa',
-      rationale: 'Generates stable fixed yields to safeguard capital preservation.'
-    })
-
-    // 4. Live Indian Stocks Allocation (Nifty 50 Bluechips & Growth)
-    const equityCapital = deployableCapital * equityWeight
-    const stockAllocations = [
-      { sym: 'RELIANCE', weight: 0.22, risk: 'Moderate Growth (Beta 1.05)' },
-      { sym: 'TCS',      weight: 0.18, risk: 'Defensive Value (Beta 0.78)' },
-      { sym: 'HDFCBANK', weight: 0.18, risk: 'Financial Core (Beta 1.10)' },
-      { sym: 'INFY',     weight: 0.14, risk: 'IT & Digital (Beta 0.95)' },
-      { sym: 'TATAMOTORS', weight: 0.14, risk: 'Auto / Cyclical (Beta 1.25)' },
-      { sym: 'ITC',      weight: 0.14, risk: 'High Dividend / FMCG (Beta 0.65)' },
-    ]
-
-    stockAllocations.forEach(st => {
-      const stock = getStock(st.sym)
-      const allocated = equityCapital * st.weight
-      const qty = Math.floor(allocated / (stock.price || 1000))
-
-      items.push({
-        asset: stock.name,
-        symbol: stock.symbol,
-        type: 'Equity (NSE)',
-        sector: stock.sector,
-        livePrice: stock.price,
-        priceUnit: 'NSE Live Traded',
-        change: stock.change,
-        changePct: stock.changePct,
-        weightPct: Math.round(((100 - liquidPct) * equityWeight * st.weight)),
-        allocatedAmount: allocated,
-        shares: qty,
-        riskRating: st.risk,
-        riskTagColor: stock.change >= 0 ? '#34d399' : '#f87171',
-        rationale: `Selected for balanced growth matching your ${riskNum}% risk threshold and ${returnNum}% target return.`
-      })
-    })
-
-    return items
-  }
-
-  const investmentPlanItems = generateInvestmentPlan()
-
   // Handle Save
   const handleSave = async (e) => {
     e.preventDefault()
@@ -300,6 +147,7 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       if (res.ok) {
         setIsSuccess(true)
         setStatusMsg(data.message || 'Portfolio configuration saved successfully!')
+<<<<<<< HEAD
         setShowDeploymentPlan(true) // Automatically display the Live Market Investment Blueprint!
         setSavedConfigSnapshot(updatedConfig)
         setShowSavePopup(true)
@@ -310,6 +158,8 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
         } catch (e) {}
         window.dispatchEvent(new CustomEvent('portfolio_updated', { detail: updatedConfig }))
 
+=======
+>>>>>>> db830db5d0c77d4804101bcc97c014c978137599
         if (onSaveSuccess) {
           onSaveSuccess(updatedConfig)
         }
@@ -327,6 +177,7 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       }
       setIsSuccess(true)
       setStatusMsg('Portfolio saved locally in current session!')
+<<<<<<< HEAD
       setShowDeploymentPlan(true)
       setSavedConfigSnapshot(updatedConfig)
       setShowSavePopup(true)
@@ -336,6 +187,8 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       } catch (e) {}
       window.dispatchEvent(new CustomEvent('portfolio_updated', { detail: updatedConfig }))
 
+=======
+>>>>>>> db830db5d0c77d4804101bcc97c014c978137599
       if (onSaveSuccess) {
         onSaveSuccess(updatedConfig)
       }
@@ -350,7 +203,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
     setLiquidityLimit(72.0)
     setExpectedReturn(11.8)
     setStatusMsg(null)
-    setShowDeploymentPlan(false)
   }
 
   // Mini donut chart SVG
@@ -817,6 +669,7 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
 
         </div>
       </div>
+<<<<<<< HEAD
 
       {/* ══════════════════════════════════════════════════════════════════
           LIVE MARKET CAPITAL DEPLOYMENT BLUEPRINT (REVEALED ON SAVE)
@@ -1050,6 +903,8 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
           </div>
         </div>
       )}
+=======
+>>>>>>> db830db5d0c77d4804101bcc97c014c978137599
     </div>
   )
 }
