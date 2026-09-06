@@ -52,11 +52,18 @@
 }
 
 .db-logo-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: #fff;
   line-height: 1;
+}
+
+.db-logo-name .logo-accent {
+  color: #38bdf8;
+  background: linear-gradient(135deg, #38bdf8 0%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .db-logo-sub {

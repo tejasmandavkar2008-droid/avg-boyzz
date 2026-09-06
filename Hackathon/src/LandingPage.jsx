@@ -22,13 +22,20 @@ function LandingPage({ onGetStarted }) {
       <nav className="navbar">
         <div className="nav-brand">
           <div className="nav-logo">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" fill="currentColor"/>
-              <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="url(#lp-logo-grad)" fillOpacity="0.25" stroke="url(#lp-logo-grad)" strokeWidth="1.8"/>
+              <path d="M8 13.5l3-3 2.5 2.5 4.5-5" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="18" cy="8" r="1.5" fill="#38bdf8"/>
+              <defs>
+                <linearGradient id="lp-logo-grad" x1="3" y1="2" x2="21" y2="25" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#38bdf8"/>
+                  <stop offset="0.5" stopColor="#3b82f6"/>
+                  <stop offset="1" stopColor="#10b981"/>
+                </linearGradient>
+              </defs>
             </svg>
           </div>
-          <span className="nav-title">FINTECH <span className="nav-accent">AM</span></span>
+          <span className="nav-title">QUANT<span className="nav-accent">GUARD</span></span>
         </div>
 
         <ul className="nav-links">
