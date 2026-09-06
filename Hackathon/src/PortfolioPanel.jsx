@@ -49,6 +49,8 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
   const [isSuccess, setIsSuccess] = useState(false)
   const [showSavePopup, setShowSavePopup] = useState(false)
   const [savedConfigSnapshot, setSavedConfigSnapshot] = useState(null)
+  const [showDeploymentPlan, setShowDeploymentPlan] = useState(false)
+  const [executionState, setExecutionState] = useState('idle') // 'idle' | 'executing' | 'completed'
 
   // Sync if portfolioData updates from parent
   useEffect(() => {
@@ -111,6 +113,50 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
     { label: 'Gold & Hedge Assets',   pct: goldPct, color: '#fbbf24', amount: (capitalNum * goldPct / 100) },
   ]
 
+  // Investment plan items for the deployment blueprint table
+  const investmentPlanItems = [
+    {
+      symbol: 'RELIANCE', asset: 'Reliance Industries Ltd', type: 'Large Cap Equity',
+      livePrice: 2847.35, priceUnit: '/share', change: 34.20, changePct: 1.22,
+      weightPct: Math.round(equityPct * 0.30),
+      allocatedAmount: Math.round(capitalNum * equityPct / 100 * 0.30),
+      shares: Math.floor((capitalNum * equityPct / 100 * 0.30) / 2847.35),
+      riskRating: 'Moderate', riskTagColor: '#fbbf24'
+    },
+    {
+      symbol: 'HDFCBANK', asset: 'HDFC Bank Ltd', type: 'Large Cap Equity',
+      livePrice: 1723.90, priceUnit: '/share', change: 18.55, changePct: 1.09,
+      weightPct: Math.round(equityPct * 0.25),
+      allocatedAmount: Math.round(capitalNum * equityPct / 100 * 0.25),
+      shares: Math.floor((capitalNum * equityPct / 100 * 0.25) / 1723.90),
+      riskRating: 'Low', riskTagColor: '#34d399'
+    },
+    {
+      symbol: 'NIFTYBEES', asset: 'Nippon India Nifty 50 ETF', type: 'Index ETF',
+      livePrice: 248.60, priceUnit: '/unit', change: 2.10, changePct: 0.85,
+      weightPct: Math.round(mfPct * 0.50),
+      allocatedAmount: Math.round(capitalNum * mfPct / 100 * 0.50),
+      shares: Math.floor((capitalNum * mfPct / 100 * 0.50) / 248.60),
+      riskRating: 'Low', riskTagColor: '#34d399'
+    },
+    {
+      symbol: 'GOLDBEES', asset: 'Nippon India Gold ETF', type: 'Gold ETF',
+      livePrice: 58.45, priceUnit: '/unit', change: 0.35, changePct: 0.60,
+      weightPct: goldPct,
+      allocatedAmount: Math.round(capitalNum * goldPct / 100),
+      shares: Math.floor((capitalNum * goldPct / 100) / 58.45),
+      riskRating: 'Low', riskTagColor: '#34d399'
+    },
+    {
+      symbol: 'LIQUID_CASH', asset: 'Liquid Cash & T-Bills Reserve', type: 'Cash / Liquidity',
+      livePrice: 1.00, priceUnit: '/unit', change: 0, changePct: 0,
+      weightPct: liquidPct,
+      allocatedAmount: Math.round(liquidReserve),
+      shares: Math.round(liquidReserve),
+      riskRating: 'Safe', riskTagColor: '#22d3ee'
+    },
+  ]
+
   // Handle Save
   const handleSave = async (e) => {
     e.preventDefault()
@@ -147,7 +193,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       if (res.ok) {
         setIsSuccess(true)
         setStatusMsg(data.message || 'Portfolio configuration saved successfully!')
-<<<<<<< HEAD
         setShowDeploymentPlan(true) // Automatically display the Live Market Investment Blueprint!
         setSavedConfigSnapshot(updatedConfig)
         setShowSavePopup(true)
@@ -158,8 +203,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
         } catch (e) {}
         window.dispatchEvent(new CustomEvent('portfolio_updated', { detail: updatedConfig }))
 
-=======
->>>>>>> db830db5d0c77d4804101bcc97c014c978137599
         if (onSaveSuccess) {
           onSaveSuccess(updatedConfig)
         }
@@ -177,7 +220,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       }
       setIsSuccess(true)
       setStatusMsg('Portfolio saved locally in current session!')
-<<<<<<< HEAD
       setShowDeploymentPlan(true)
       setSavedConfigSnapshot(updatedConfig)
       setShowSavePopup(true)
@@ -187,8 +229,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
       } catch (e) {}
       window.dispatchEvent(new CustomEvent('portfolio_updated', { detail: updatedConfig }))
 
-=======
->>>>>>> db830db5d0c77d4804101bcc97c014c978137599
       if (onSaveSuccess) {
         onSaveSuccess(updatedConfig)
       }
@@ -669,7 +709,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
 
         </div>
       </div>
-<<<<<<< HEAD
 
       {/* ══════════════════════════════════════════════════════════════════
           LIVE MARKET CAPITAL DEPLOYMENT BLUEPRINT (REVEALED ON SAVE)
@@ -903,8 +942,6 @@ export default function PortfolioPanel({ user, portfolioData, onSaveSuccess, onN
           </div>
         </div>
       )}
-=======
->>>>>>> db830db5d0c77d4804101bcc97c014c978137599
     </div>
   )
 }
